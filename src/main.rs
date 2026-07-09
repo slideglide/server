@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
     let server = HttpServer::new(move || {
         let openapi = ApiDoc::openapi();
 
-        App::new()
+        let app = App::new()
             .app_data(web::Data::new(app_data.clone()))
             .app_data(QueryConfig::default().error_handler(api::query_error_handler))
             .service(
@@ -62,7 +62,14 @@ async fn main() -> anyhow::Result<()> {
                     .supports_credentials()
                     .max_age(3600),
             )
-            .wrap(Logger::default())
+            .wrap(Logger::default());
+
+        #[cfg(feature = "dev-tools")]
+        let app = app
+            .service(actix_files::Files::new("/static", "storage/static"))
+            .service(actix_files::Files::new("/storage", "storage/public"));
+
+        app
             .service(endpoints::mods::index)
             .service(endpoints::mods::get_mod_updates)
             .service(endpoints::mods::get)

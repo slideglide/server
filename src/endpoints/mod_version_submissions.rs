@@ -735,6 +735,7 @@ pub struct UploadAttachmentsForm {
         (status = 201, description = "Attachments uploaded", body = inline(ApiResponse<Vec<ModVersionSubmissionAttachment>>)),
         (status = 400, description = "Bad request - no images, file too large, or attachment limit exceeded"),
         (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Unauthorized (only verified / mod developers / index admins can post attachments)"),
         (status = 404, description = "Mod, version, submission, or comment not found"),
     ),
     security(("bearer_token" = []))
@@ -775,6 +776,11 @@ pub async fn upload_attachments(
     }
 
     if comment_row.author_id != dev.id {
+        return Err(ApiError::Authorization);
+    }
+
+    let dev_of_mod = developers::has_access_to_mod(dev.id, &path.id, &mut tx).await?;
+    if !dev.verified && !dev.admin && !dev_of_mod {
         return Err(ApiError::Authorization);
     }
 

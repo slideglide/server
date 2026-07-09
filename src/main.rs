@@ -8,6 +8,7 @@ use actix_web::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use crate::storage::StorageDisk;
 
 mod abbreviate;
 mod auth;
@@ -30,6 +31,8 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|e| e.context("Failed to read log4rs config"))?;
 
     let app_data = config::build_config().await?;
+    app_data.static_storage().init().await?;
+    app_data.private_storage().init().await?;
 
     if cli::maybe_cli(&app_data).await? {
         return Ok(());
@@ -45,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
     let server = HttpServer::new(move || {
         let openapi = ApiDoc::openapi();
 
-        App::new()
+        let app = App::new()
             .app_data(web::Data::new(app_data.clone()))
             .app_data(QueryConfig::default().error_handler(api::query_error_handler))
             .service(
@@ -59,7 +62,14 @@ async fn main() -> anyhow::Result<()> {
                     .supports_credentials()
                     .max_age(3600),
             )
-            .wrap(Logger::default())
+            .wrap(Logger::default());
+
+        #[cfg(feature = "dev-tools")]
+        let app = app
+            .service(actix_files::Files::new("/static", "storage/static"))
+            .service(actix_files::Files::new("/storage", "storage/public"));
+
+        app
             .service(endpoints::mods::index)
             .service(endpoints::mods::get_mod_updates)
             .service(endpoints::mods::get)
@@ -72,6 +82,17 @@ async fn main() -> anyhow::Result<()> {
             .service(endpoints::mod_versions::download_version)
             .service(endpoints::mod_versions::create_version)
             .service(endpoints::mod_versions::update_version)
+            .service(endpoints::mod_version_submissions::get_submission)
+            .service(endpoints::mod_version_submissions::get_submission_audit)
+            .service(endpoints::mod_version_submissions::update_submission)
+            .service(endpoints::mod_version_submissions::get_comments)
+            .service(endpoints::mod_version_submissions::get_comment_audit)
+            .service(endpoints::mod_version_submissions::create_comment)
+            .service(endpoints::mod_version_submissions::update_comment)
+            .service(endpoints::mod_version_submissions::delete_comment)
+            .service(endpoints::mod_version_submissions::get_attachments)
+            .service(endpoints::mod_version_submissions::upload_attachments)
+            .service(endpoints::mod_version_submissions::delete_attachment)
             .service(endpoints::deprecations::index)
             .service(endpoints::deprecations::store)
             .service(endpoints::deprecations::update)

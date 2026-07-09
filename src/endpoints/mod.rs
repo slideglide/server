@@ -20,7 +20,7 @@ pub mod mod_version_submissions;
 pub enum ApiError {
     #[error("Authentication error: {0}")]
     Authentication(#[from] crate::auth::AuthenticationError),
-    #[error("You do not have acces to this resource")]
+    #[error("You do not have access to this resource")]
     Authorization,
     #[error("{0}")]
     Database(#[from] crate::database::DatabaseError),

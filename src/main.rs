@@ -3,7 +3,6 @@ use crate::types::api;
 use actix_cors::Cors;
 use actix_web::{
     App, HttpServer,
-    middleware::Logger,
     web::{self, QueryConfig},
 };
 use utoipa::OpenApi;
@@ -62,7 +61,7 @@ async fn main() -> anyhow::Result<()> {
                     .supports_credentials()
                     .max_age(3600),
             )
-            .wrap(Logger::default());
+            .wrap(tracing_actix_web::TracingLogger::default());
 
         #[cfg(feature = "dev-tools")]
         let app = app

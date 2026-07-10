@@ -231,7 +231,7 @@ impl DetailedGDVersion {
 
 impl ModGDVersion {
     // to be used for GET mods/{id}/version/{version}
-    #[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
+    #[tracing::instrument(skip_all, fields(mod_version_id = %id))]
     pub async fn get_for_mod_version(
         id: i32,
         pool: &mut PgConnection,
@@ -280,7 +280,7 @@ impl ModGDVersion {
     }
 
     // hello
-    #[tracing::instrument(skip_all, err, fields(mod_version_ids = ?versions))]
+    #[tracing::instrument(skip_all, fields(mod_version_ids = ?versions))]
     pub async fn get_for_mod_versions(
         versions: &[i32],
         pool: &mut PgConnection,

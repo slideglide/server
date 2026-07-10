@@ -42,7 +42,7 @@ impl ModRecordGetOne {
 /// Fetches information for a mod, without versions or other added info.
 ///
 /// The second parameter decides if about.md and changelog.md are fetched from the database. Those are pretty big files, so only fetch them if needed.
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn get_one(
     id: &str,
     include_md: bool,
@@ -80,7 +80,7 @@ pub async fn get_one(
 }
 
 /// Does NOT check if the target mod exists
-#[tracing::instrument(skip_all, err, fields(mod_id = %json.id))]
+#[tracing::instrument(skip_all, fields(mod_id = %json.id))]
 pub async fn create(json: &ModJson, conn: &mut PgConnection) -> Result<Mod, DatabaseError> {
     sqlx::query_as!(
         ModRecordGetOne,
@@ -108,7 +108,7 @@ pub async fn create(json: &ModJson, conn: &mut PgConnection) -> Result<Mod, Data
     .map(|x| x.into_mod())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id, developer_id = %developer_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id, developer_id = %developer_id))]
 pub async fn assign_owner(
     id: &str,
     developer_id: i32,
@@ -117,7 +117,7 @@ pub async fn assign_owner(
     assign_developer(id, developer_id, true, conn).await
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id, developer_id = %developer_id, owner = %owner))]
+#[tracing::instrument(skip_all, fields(mod_id = %id, developer_id = %developer_id, owner = %owner))]
 pub async fn assign_developer(
     id: &str,
     developer_id: i32,
@@ -137,7 +137,7 @@ pub async fn assign_developer(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id, developer_id = %developer_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id, developer_id = %developer_id))]
 pub async fn unassign_developer(
     id: &str,
     developer_id: i32,
@@ -156,7 +156,7 @@ pub async fn unassign_developer(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn is_featured(id: &str, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     Ok(sqlx::query!("SELECT featured FROM mods WHERE id = $1", id)
         .fetch_optional(&mut *conn)
@@ -165,7 +165,7 @@ pub async fn is_featured(id: &str, conn: &mut PgConnection) -> Result<bool, Data
         .unwrap_or(false))
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn exists(id: &str, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     Ok(sqlx::query!("SELECT id FROM mods WHERE id = $1", id)
         .fetch_optional(&mut *conn)
@@ -176,7 +176,7 @@ pub async fn exists(id: &str, conn: &mut PgConnection) -> Result<bool, DatabaseE
 /// Checks if multiple ids exist in the database.
 ///
 /// Returns a tuple with (existing ids, missing ids).
-#[tracing::instrument(skip_all, err, fields(mod_ids = ?ids))]
+#[tracing::instrument(skip_all, fields(mod_ids = ?ids))]
 pub async fn exists_multiple(
     ids: &[String],
     conn: &mut PgConnection,
@@ -202,7 +202,7 @@ pub async fn exists_multiple(
     Ok((existing, missing))
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn get_logo(id: &str, conn: &mut PgConnection) -> Result<Option<Vec<u8>>, DatabaseError> {
     struct QueryResult {
         image: Option<Vec<u8>>,
@@ -230,7 +230,7 @@ pub async fn get_logo(id: &str, conn: &mut PgConnection) -> Result<Option<Vec<u8
     }
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn increment_downloads(id: &str, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "UPDATE mods
@@ -244,7 +244,7 @@ pub async fn increment_downloads(id: &str, conn: &mut PgConnection) -> Result<()
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %the_mod.id))]
+#[tracing::instrument(skip_all, fields(mod_id = %the_mod.id))]
 pub async fn update_with_json(
     mut the_mod: Mod,
     json: &ModJson,
@@ -274,7 +274,7 @@ pub async fn update_with_json(
     Ok(the_mod)
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %the_mod.id))]
+#[tracing::instrument(skip_all, fields(mod_id = %the_mod.id))]
 pub async fn update_with_json_moved(
     mut the_mod: Mod,
     json: ModJson,
@@ -306,7 +306,7 @@ pub async fn update_with_json_moved(
 
 /// Used when first version goes from pending to accepted.
 /// Makes it so versions that stay a lot in pending appear at the top of the newly created lists
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn touch_created_at(id: &str, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "UPDATE mods

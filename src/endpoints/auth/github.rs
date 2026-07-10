@@ -40,7 +40,7 @@ struct CallbackParams {
     )
 )]
 #[post("v1/login/github")]
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn start_github_login(
     data: web::Data<AppData>,
     info: ConnectionInfo,
@@ -78,7 +78,7 @@ pub async fn start_github_login(
     )
 )]
 #[post("v1/login/github/web")]
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn start_github_web_login(data: web::Data<AppData>) -> Result<impl Responder, ApiError> {
     let mut pool = data.db().acquire().await?;
 
@@ -108,7 +108,7 @@ pub async fn start_github_web_login(data: web::Data<AppData>) -> Result<impl Res
     )
 )]
 #[post("v1/login/github/callback")]
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn github_web_callback(
     json: web::Json<CallbackParams>,
     data: web::Data<AppData>,
@@ -166,7 +166,7 @@ pub async fn github_web_callback(
     )
 )]
 #[post("v1/login/github/poll")]
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn poll_github_login(
     json: web::Json<PollParams>,
     data: web::Data<AppData>,
@@ -271,7 +271,7 @@ pub async fn poll_github_login(
     )
 )]
 #[post("v1/login/github/token")]
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn github_token_login(
     json: web::Json<TokenLoginParams>,
     data: web::Data<AppData>,

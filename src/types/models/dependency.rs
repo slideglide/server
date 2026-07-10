@@ -108,7 +108,7 @@ pub enum DependencyImportance {
 }
 
 impl Dependency {
-    #[tracing::instrument(skip_all, err, fields(mod_version_ids = ?ids))]
+    #[tracing::instrument(skip_all, fields(mod_version_ids = ?ids))]
     pub async fn get_for_mod_versions(
         ids: &Vec<i32>,
         platform: Option<VerPlatform>,

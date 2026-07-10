@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(
     mod_version_id: i32,
     json: &ModJson,
@@ -68,7 +68,7 @@ pub async fn create(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %id))]
 pub async fn clear(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "DELETE FROM incompatibilities

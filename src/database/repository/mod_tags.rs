@@ -3,7 +3,7 @@ use crate::database::DatabaseError;
 use crate::types::models::tag::Tag;
 use sqlx::PgConnection;
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {
     let tags = sqlx::query!(
         "SELECT
@@ -28,7 +28,7 @@ pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, Datab
     Ok(tags)
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn get_allowed_for_mod(
     id: &str,
     conn: &mut PgConnection,
@@ -62,7 +62,7 @@ pub async fn get_allowed_for_mod(
     return Ok(writable);
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {
     let tags = sqlx::query!(
         "SELECT
@@ -86,7 +86,7 @@ pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError>
     Ok(tags)
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {
     sqlx::query!(
         "SELECT
@@ -114,7 +114,7 @@ pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, 
     })
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn update_for_mod(
     id: &str,
     tags: &[Tag],

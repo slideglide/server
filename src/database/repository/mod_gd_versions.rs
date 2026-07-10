@@ -8,7 +8,7 @@ use crate::{
     },
 };
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(
     mod_version_id: i32,
     json: &ModJson,
@@ -38,7 +38,7 @@ pub async fn create(
     Ok(json.gd.clone())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn clear(mod_version_id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "DELETE FROM mod_gd_versions mgv

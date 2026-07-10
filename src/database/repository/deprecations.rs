@@ -3,7 +3,7 @@ use crate::types::models::deprecations::Deprecation;
 use crate::types::models::developer::Developer;
 use sqlx::PgConnection;
 
-#[tracing::instrument(skip_all, err, fields(mod_ids = ?ids))]
+#[tracing::instrument(skip_all, fields(mod_ids = ?ids))]
 pub async fn get_for_mods(
     ids: &[String],
     conn: &mut PgConnection,
@@ -40,7 +40,7 @@ pub async fn get_for_mods(
         .collect())
 }
 
-#[tracing::instrument(skip_all, err, fields(deprecation_id = %id))]
+#[tracing::instrument(skip_all, fields(deprecation_id = %id))]
 pub async fn get(id: i32, conn: &mut PgConnection) -> Result<Option<Deprecation>, DatabaseError> {
     let dep = sqlx::query!(
         "SELECT
@@ -80,7 +80,7 @@ pub async fn get(id: i32, conn: &mut PgConnection) -> Result<Option<Deprecation>
     Ok(Some(dep))
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn create(
     mod_id: &str,
     by: &[String],
@@ -112,7 +112,7 @@ pub async fn create(
     })
 }
 
-#[tracing::instrument(skip_all, err, fields(deprecation_id = %deprecation.id))]
+#[tracing::instrument(skip_all, fields(deprecation_id = %deprecation.id))]
 pub async fn update(
     mut deprecation: Deprecation,
     by: Option<&[String]>,
@@ -175,7 +175,7 @@ pub async fn update(
     Ok(deprecation)
 }
 
-#[tracing::instrument(skip_all, err, fields(deprecation_id = %id))]
+#[tracing::instrument(skip_all, fields(deprecation_id = %id))]
 pub async fn delete(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "DELETE FROM deprecations
@@ -188,7 +188,7 @@ pub async fn delete(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseErro
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn clear_all(mod_id: &str, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "DELETE FROM deprecations
@@ -201,7 +201,7 @@ pub async fn clear_all(mod_id: &str, conn: &mut PgConnection) -> Result<(), Data
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err, fields(deprecation_id = %id))]
+#[tracing::instrument(skip_all, fields(deprecation_id = %id))]
 async fn insert_deprecated_by(
     id: i32,
     by: &[String],

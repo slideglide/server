@@ -3,7 +3,7 @@ use chrono::{Days, Utc};
 use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgConnection;
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(
     ip: IpNetwork,
     mod_version_id: i32,
@@ -22,7 +22,7 @@ pub async fn create(
     Ok(result.rows_affected() > 0)
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn has_downloaded_mod(
     ip: IpNetwork,
     mod_id: &str,
@@ -43,7 +43,7 @@ pub async fn has_downloaded_mod(
     .map(|x| x.is_some())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     let date = Utc::now().checked_sub_days(Days::new(30)).unwrap();
     sqlx::query!(

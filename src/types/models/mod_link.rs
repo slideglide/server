@@ -14,7 +14,7 @@ pub struct ModLinks {
 }
 
 impl ModLinks {
-    #[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+    #[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
     pub async fn fetch(
         mod_id: &str,
         pool: &mut PgConnection,
@@ -32,7 +32,7 @@ impl ModLinks {
         .map_err(|e| e.into())
     }
 
-    #[tracing::instrument(skip_all, err, fields(mod_ids = ?mod_ids))]
+    #[tracing::instrument(skip_all, fields(mod_ids = ?mod_ids))]
     pub async fn fetch_for_mods(
         mod_ids: &Vec<String>,
         pool: &mut PgConnection,

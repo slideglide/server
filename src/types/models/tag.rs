@@ -14,7 +14,7 @@ pub struct Tag {
 }
 
 impl Tag {
-    #[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+    #[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
     pub async fn get_tags_for_mod(
         mod_id: &str,
         pool: &mut PgConnection,
@@ -31,7 +31,7 @@ impl Tag {
         .map_err(|e| e.into())
     }
 
-    #[tracing::instrument(skip_all, err, fields(mod_ids = ?ids))]
+    #[tracing::instrument(skip_all, fields(mod_ids = ?ids))]
     pub async fn get_tags_for_mods(
         ids: &Vec<String>,
         pool: &mut PgConnection,
@@ -57,7 +57,7 @@ impl Tag {
         Ok(ret)
     }
 
-    #[tracing::instrument(skip_all, err, fields(tags = %tags))]
+    #[tracing::instrument(skip_all, fields(tags = %tags))]
     pub async fn parse_tags(tags: &str, pool: &mut PgConnection) -> Result<Vec<i32>, ApiError> {
         let tags = tags
             .split(',')

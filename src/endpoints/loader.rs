@@ -44,7 +44,7 @@ struct GetOnePath {
     )
 )]
 #[get("v1/loader/versions/{version}")]
-#[tracing::instrument(skip_all, err, fields(version = %path.version))]
+#[tracing::instrument(skip_all, fields(version = %path.version))]
 pub async fn get_one(
     path: web::Path<GetOnePath>,
     data: web::Data<AppData>,
@@ -109,7 +109,7 @@ struct CreateVersionBody {
     )
 )]
 #[post("v1/loader/versions")]
-#[tracing::instrument(skip_all, err, fields(tag = %payload.tag))]
+#[tracing::instrument(skip_all, fields(tag = %payload.tag))]
 pub async fn create_version(
     data: web::Data<AppData>,
     payload: web::Json<CreateVersionBody>,
@@ -162,7 +162,7 @@ struct GetManyQuery {
     )
 )]
 #[get("v1/loader/versions")]
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn get_many(
     data: web::Data<AppData>,
     query: web::Query<GetManyQuery>,

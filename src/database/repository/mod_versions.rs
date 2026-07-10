@@ -60,7 +60,7 @@ impl ModVersionRow {
     }
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id, version = %version))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id, version = %version))]
 pub async fn get_by_version_str(
     mod_id: &str,
     version: &str,
@@ -88,7 +88,7 @@ pub async fn get_by_version_str(
         .map(|opt| opt.map(|x| x.into_mod_version()))
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id, statuses = ?statuses))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id, statuses = ?statuses))]
 pub async fn get_for_mod(
     mod_id: &str,
     statuses: Option<&[ModVersionStatusEnum]>,
@@ -129,7 +129,7 @@ pub async fn get_for_mod(
     Ok(versions)
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %id))]
 pub async fn increment_downloads(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "UPDATE mod_versions
@@ -143,7 +143,7 @@ pub async fn increment_downloads(id: i32, conn: &mut PgConnection) -> Result<(),
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %json.id, version = %json.version))]
+#[tracing::instrument(skip_all, fields(mod_id = %json.id, version = %json.version))]
 pub async fn create_from_json(
     json: &ModJson,
     make_accepted: bool,
@@ -239,7 +239,7 @@ pub async fn create_from_json(
     })
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %version_id, mod_id = %json.id, version = %json.version))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %version_id, mod_id = %json.id, version = %json.version))]
 pub async fn update_pending_version(
     version_id: i32,
     json: &ModJson,
@@ -344,7 +344,7 @@ pub async fn update_pending_version(
     })
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %version.id, status = ?status))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %version.id, status = ?status))]
 pub async fn update_version_status(
     mut version: ModVersion,
     status: ModVersionStatusEnum,

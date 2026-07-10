@@ -5,7 +5,7 @@ use sqlx::PgConnection;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[tracing::instrument(skip_all, err, fields(query = ?query))]
+#[tracing::instrument(skip_all, fields(query = ?query))]
 pub async fn index(
     query: Option<&str>,
     page: i64,
@@ -47,7 +47,7 @@ pub async fn index(
     })
 }
 
-#[tracing::instrument(skip_all, err, fields(query = ?query))]
+#[tracing::instrument(skip_all, fields(query = ?query))]
 pub async fn index_count(
     query: Option<&str>,
     conn: &mut PgConnection,
@@ -67,7 +67,7 @@ pub async fn index_count(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(github_id = %github_id, username = %username))]
+#[tracing::instrument(skip_all, fields(github_id = %github_id, username = %username))]
 pub async fn fetch_or_insert_github(
     github_id: i64,
     username: &str,
@@ -94,7 +94,7 @@ pub async fn fetch_or_insert_github(
     }
 }
 
-#[tracing::instrument(skip_all, err, fields(github_id = %github_id, username = %username))]
+#[tracing::instrument(skip_all, fields(github_id = %github_id, username = %username))]
 async fn insert_github(
     github_id: i64,
     username: &str,
@@ -119,7 +119,7 @@ async fn insert_github(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %id))]
+#[tracing::instrument(skip_all, fields(developer_id = %id))]
 pub async fn get_one(id: i32, conn: &mut PgConnection) -> Result<Option<Developer>, DatabaseError> {
     sqlx::query_as!(
         Developer,
@@ -139,7 +139,7 @@ pub async fn get_one(id: i32, conn: &mut PgConnection) -> Result<Option<Develope
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_ids = ?ids))]
+#[tracing::instrument(skip_all, fields(developer_ids = ?ids))]
 pub async fn get_many_by_id(
     ids: &[i32],
     conn: &mut PgConnection,
@@ -165,7 +165,7 @@ pub async fn get_many_by_id(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(username = %username))]
+#[tracing::instrument(skip_all, fields(username = %username))]
 pub async fn get_one_by_username(
     username: &str,
     conn: &mut PgConnection,
@@ -195,7 +195,7 @@ pub async fn get_one_by_username(
     .map_err(|x| x.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn get_all_for_mod(
     mod_id: &str,
     conn: &mut PgConnection,
@@ -218,7 +218,7 @@ pub async fn get_all_for_mod(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_ids = ?mod_ids))]
+#[tracing::instrument(skip_all, fields(mod_ids = ?mod_ids))]
 pub async fn get_all_for_mods(
     mod_ids: &[String],
     conn: &mut PgConnection,
@@ -267,7 +267,7 @@ pub async fn get_all_for_mods(
     Ok(ret)
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id, mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %dev_id, mod_id = %mod_id))]
 pub async fn has_access_to_mod(
     dev_id: i32,
     mod_id: &str,
@@ -286,7 +286,7 @@ pub async fn has_access_to_mod(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %dev_id))]
 pub async fn has_active_mod(dev_id: i32, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     sqlx::query!(
         "SELECT mods.id FROM mods
@@ -304,7 +304,7 @@ pub async fn has_active_mod(dev_id: i32, conn: &mut PgConnection) -> Result<bool
     .map(|result| result.is_some())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id, mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %dev_id, mod_id = %mod_id))]
 pub async fn owns_mod(
     dev_id: i32,
     mod_id: &str,
@@ -323,7 +323,7 @@ pub async fn owns_mod(
     .is_some())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn get_owner_for_mod(
     mod_id: &str,
     conn: &mut PgConnection,
@@ -348,7 +348,7 @@ pub async fn get_owner_for_mod(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %dev_id))]
 pub async fn update_status(
     dev_id: i32,
     verified: bool,
@@ -377,7 +377,7 @@ pub async fn update_status(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %dev_id))]
 pub async fn update_profile(
     dev_id: i32,
     display_name: &str,
@@ -403,7 +403,7 @@ pub async fn update_profile(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn find_by_refresh_token(
     uuid: Uuid,
     conn: &mut PgConnection,
@@ -429,7 +429,7 @@ pub async fn find_by_refresh_token(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn find_by_token(
     token: &Uuid,
     conn: &mut PgConnection,
@@ -458,7 +458,7 @@ pub async fn find_by_token(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %id))]
+#[tracing::instrument(skip_all, fields(developer_id = %id))]
 pub async fn has_accepted_mod(id: i32, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     sqlx::query!(
         "SELECT mod_versions.id

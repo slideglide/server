@@ -2,7 +2,7 @@ use sqlx::PgConnection;
 
 use crate::{database::DatabaseError, types::models::mod_link::ModLinks};
 
-#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn upsert(
     mod_id: &str,
     community: Option<String>,

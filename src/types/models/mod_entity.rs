@@ -116,7 +116,7 @@ impl Mod {
         }
     }
 
-    #[tracing::instrument(skip_all, err)]
+    #[tracing::instrument(skip_all)]
     pub async fn get_stats(pool: &mut PgConnection) -> Result<ModStats, DatabaseError> {
         let result = sqlx::query!(
             "
@@ -149,7 +149,7 @@ impl Mod {
         }
     }
 
-    #[tracing::instrument(skip_all, err, fields(query = ?query.query, page = ?query.page, per_page = ?query.per_page))]
+    #[tracing::instrument(skip_all, fields(query = ?query.query, page = ?query.page, per_page = ?query.per_page))]
     pub async fn get_index(
         pool: &mut PgConnection,
         query: &IndexQueryParams,
@@ -485,7 +485,7 @@ impl Mod {
         })
     }
 
-    #[tracing::instrument(skip_all, err, fields(developer_id = %id, status = ?status, only_owner = %only_owner))]
+    #[tracing::instrument(skip_all, fields(developer_id = %id, status = ?status, only_owner = %only_owner))]
     pub async fn get_all_for_dev(
         id: i32,
         status: ModVersionStatusEnum,
@@ -571,7 +571,7 @@ impl Mod {
         Ok(mods)
     }
 
-    #[tracing::instrument(skip_all, err, fields(mod_id = %id, only_accepted = %only_accepted))]
+    #[tracing::instrument(skip_all, fields(mod_id = %id, only_accepted = %only_accepted))]
     pub async fn get_one(
         id: &str,
         only_accepted: bool,
@@ -669,7 +669,7 @@ impl Mod {
 
     /// At the moment this is only used to set the mod to featured.
     /// DOES NOT check if the mod exists
-    #[tracing::instrument(skip_all, err, fields(mod_id = %id, featured = %featured))]
+    #[tracing::instrument(skip_all, fields(mod_id = %id, featured = %featured))]
     pub async fn update_mod(
         id: &str,
         featured: bool,
@@ -682,7 +682,7 @@ impl Mod {
             .map(|_| ())
     }
 
-    #[tracing::instrument(skip_all, err, fields(mod_ids = ?ids, platform = ?platforms, gd = ?gd))]
+    #[tracing::instrument(skip_all, fields(mod_ids = ?ids, platform = ?platforms, gd = ?gd))]
     pub async fn get_updates(
         ids: &[String],
         platforms: VerPlatform,

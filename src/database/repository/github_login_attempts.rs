@@ -5,7 +5,7 @@ use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgConnection;
 use uuid::Uuid;
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn get_one_by_ip(
     ip: IpNetwork,
     conn: &mut PgConnection,
@@ -31,7 +31,7 @@ pub async fn get_one_by_ip(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn get_one_by_uuid(
     uuid: Uuid,
     pool: &mut PgConnection,
@@ -57,7 +57,7 @@ pub async fn get_one_by_uuid(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn create(
     ip: IpNetwork,
     device_code: String,
@@ -94,7 +94,7 @@ pub async fn create(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn poll_now(uuid: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     let now = Utc::now();
     sqlx::query!(
@@ -110,7 +110,7 @@ pub async fn poll_now(uuid: Uuid, conn: &mut PgConnection) -> Result<(), Databas
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn remove(uuid: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!("DELETE FROM github_login_attempts WHERE uid = $1", uuid)
         .execute(conn)

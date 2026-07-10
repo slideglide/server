@@ -48,7 +48,7 @@ const MAX_MODS_PER_DEPRECATION: usize = 20;
     )
 )]
 #[get("v1/mods/{id}/deprecations")]
-#[tracing::instrument(skip_all, err, fields(mod_id = %path.id))]
+#[tracing::instrument(skip_all, fields(mod_id = %path.id))]
 pub async fn index(
     data: web::Data<AppData>,
     path: web::Path<ModPath>
@@ -85,7 +85,7 @@ pub async fn index(
     )
 )]
 #[post("v1/mods/{id}/deprecations")]
-#[tracing::instrument(skip_all, err, fields(mod_id = %path.id))]
+#[tracing::instrument(skip_all, fields(mod_id = %path.id))]
 pub async fn store(
     data: web::Data<AppData>,
     path: web::Path<ModPath>,
@@ -133,7 +133,7 @@ pub async fn store(
     )
 )]
 #[put("v1/mods/{id}/deprecations/{deprecation_id}")]
-#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, deprecation_id = %path.deprecation_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %path.id, deprecation_id = %path.deprecation_id))]
 pub async fn update(
     data: web::Data<AppData>,
     path: web::Path<ModDeprecationPath>,
@@ -204,7 +204,7 @@ pub async fn update(
     )
 )]
 #[delete("v1/mods/{id}/deprecations/{deprecation_id}")]
-#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, deprecation_id = %path.deprecation_id))]
+#[tracing::instrument(skip_all, fields(mod_id = %path.id, deprecation_id = %path.deprecation_id))]
 pub async fn delete(
     data: web::Data<AppData>,
     path: web::Path<ModDeprecationPath>,
@@ -258,7 +258,7 @@ pub async fn delete(
     )
 )]
 #[delete("v1/mods/{id}/deprecations")]
-#[tracing::instrument(skip_all, err, fields(mod_id = %path.id))]
+#[tracing::instrument(skip_all, fields(mod_id = %path.id))]
 pub async fn clear_all(
     data: web::Data<AppData>,
     path: web::Path<ModPath>,

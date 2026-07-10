@@ -29,7 +29,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    #[tracing::instrument(skip_all, err)]
+    #[tracing::instrument(skip_all)]
     pub async fn get_cached(pool: &mut PgConnection) -> Result<Stats, ApiError> {
         let mod_stats = Mod::get_stats(&mut *pool).await?;
         Ok(Stats {
@@ -41,7 +41,7 @@ impl Stats {
         })
     }
 
-    #[tracing::instrument(skip_all, err)]
+    #[tracing::instrument(skip_all)]
     async fn get_latest_github_release_download_count(
         pool: &mut PgConnection,
     ) -> Result<i64, ApiError> {

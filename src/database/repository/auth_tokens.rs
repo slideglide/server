@@ -4,7 +4,7 @@ use sqlx::PgConnection;
 use uuid::Uuid;
 
 /// Assumes developer ID exists
-#[tracing::instrument(skip_all, err, fields(developer_id = %developer_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %developer_id))]
 pub async fn generate_token(
     developer_id: i32,
     with_expiry: bool,
@@ -33,7 +33,7 @@ pub async fn generate_token(
     Ok(token)
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     let hash = sha256::digest(token.to_string());
 
@@ -48,7 +48,7 @@ pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), Da
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err, fields(developer_id = %developer_id))]
+#[tracing::instrument(skip_all, fields(developer_id = %developer_id))]
 pub async fn remove_developer_tokens(
     developer_id: i32,
     conn: &mut PgConnection,
@@ -64,7 +64,7 @@ pub async fn remove_developer_tokens(
     Ok(())
 }
 
-#[tracing::instrument(skip_all, err)]
+#[tracing::instrument(skip_all)]
 pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "DELETE FROM auth_tokens

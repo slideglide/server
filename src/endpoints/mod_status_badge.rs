@@ -39,7 +39,7 @@ pub struct StatusBadgeQuery {
     )
 )]
 #[get("/v1/mods/{id}/status_badge")]
-#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn status_badge(
     data: web::Data<AppData>,
     id: web::Path<String>,

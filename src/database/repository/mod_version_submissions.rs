@@ -7,7 +7,7 @@ use crate::types::models::mod_version_submission::{
 use sqlx::{Error, PgConnection};
 use std::collections::HashMap;
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %id))]
 pub async fn get_for_mod_version(
     id: i32,
     conn: &mut PgConnection,
@@ -26,7 +26,7 @@ pub async fn get_for_mod_version(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(submission_id = %id))]
+#[tracing::instrument(skip_all, fields(submission_id = %id))]
 pub async fn get_audit_for_submission(
     id: i32,
     conn: &mut PgConnection,
@@ -44,7 +44,7 @@ pub async fn get_audit_for_submission(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(
     mod_version_id: i32,
     conn: &mut PgConnection,
@@ -63,7 +63,7 @@ pub async fn create(
     Ok(row)
 }
 
-#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id, lock = ?lock))]
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id, lock = ?lock))]
 pub async fn set_locked(
     mod_version_id: i32,
     lock: ModVersionSubmissionLock,
@@ -106,7 +106,7 @@ pub async fn set_locked(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(submission_id = %id))]
+#[tracing::instrument(skip_all, fields(submission_id = %id))]
 pub async fn get_paginated_comments_for_submission(
     id: i32,
     page: i64,
@@ -131,7 +131,7 @@ pub async fn get_paginated_comments_for_submission(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(submission_id = %id))]
+#[tracing::instrument(skip_all, fields(submission_id = %id))]
 pub async fn count_comments_for_submission(
     id: i32,
     conn: &mut PgConnection,
@@ -146,7 +146,7 @@ pub async fn count_comments_for_submission(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(submission_id = %submission_id, author_id = %author_id))]
+#[tracing::instrument(skip_all, fields(submission_id = %submission_id, author_id = %author_id))]
 pub async fn create_comment(
     submission_id: i32,
     author_id: i32,
@@ -167,7 +167,7 @@ pub async fn create_comment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %comment_id))]
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn get_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -184,7 +184,7 @@ pub async fn get_comment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %comment_id))]
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn update_comment(
     comment_id: i64,
     new_text: &str,
@@ -204,7 +204,7 @@ pub async fn update_comment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %comment_id))]
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn delete_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -218,7 +218,7 @@ pub async fn delete_comment(
     Ok(result.rows_affected() > 0)
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %id))]
+#[tracing::instrument(skip_all, fields(comment_id = %id))]
 pub async fn get_audit_for_comment(
     id: i64,
     conn: &mut PgConnection,
@@ -236,7 +236,7 @@ pub async fn get_audit_for_comment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %comment_id))]
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn count_attachments_for_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -251,7 +251,7 @@ pub async fn count_attachments_for_comment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %comment_id, filename = %filename))]
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id, filename = %filename))]
 pub async fn create_attachment(
     comment_id: i64,
     filename: &str,
@@ -270,7 +270,7 @@ pub async fn create_attachment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %comment_id))]
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn get_attachments_for_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -288,7 +288,7 @@ pub async fn get_attachments_for_comment(
     .map_err(|e: Error| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_ids = ?comment_ids))]
+#[tracing::instrument(skip_all, fields(comment_ids = ?comment_ids))]
 pub async fn get_attachments_for_comments(
     comment_ids: &[i64],
     conn: &mut PgConnection,
@@ -313,7 +313,7 @@ pub async fn get_attachments_for_comments(
     Ok(ret)
 }
 
-#[tracing::instrument(skip_all, err, fields(attachment_id = %attachment_id))]
+#[tracing::instrument(skip_all, fields(attachment_id = %attachment_id))]
 pub async fn get_attachment(
     attachment_id: i64,
     conn: &mut PgConnection,
@@ -330,7 +330,7 @@ pub async fn get_attachment(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(attachment_id = %attachment_id))]
+#[tracing::instrument(skip_all, fields(attachment_id = %attachment_id))]
 pub async fn delete_attachment(
     attachment_id: i64,
     conn: &mut PgConnection,
@@ -344,7 +344,7 @@ pub async fn delete_attachment(
     Ok(result.rows_affected() > 0)
 }
 
-#[tracing::instrument(skip_all, err, fields(filename = %filename))]
+#[tracing::instrument(skip_all, fields(filename = %filename))]
 pub async fn count_references_to_filename(
     filename: &str,
     conn: &mut PgConnection,
@@ -359,7 +359,7 @@ pub async fn count_references_to_filename(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(filenames = ?filenames))]
+#[tracing::instrument(skip_all, fields(filenames = ?filenames))]
 pub async fn count_references_to_filenames(
     filenames: &[String],
     conn: &mut PgConnection,
@@ -382,7 +382,7 @@ pub async fn count_references_to_filenames(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(submission_id = %id, action = ?action))]
+#[tracing::instrument(skip_all, fields(submission_id = %id, action = ?action))]
 pub async fn insert_submission_audit(
     id: i32,
     action: AuditAction,
@@ -404,7 +404,7 @@ pub async fn insert_submission_audit(
     .map_err(|e| e.into())
 }
 
-#[tracing::instrument(skip_all, err, fields(comment_id = %id, action = ?action))]
+#[tracing::instrument(skip_all, fields(comment_id = %id, action = ?action))]
 pub async fn insert_comment_audit(
     id: i64,
     action: AuditAction,

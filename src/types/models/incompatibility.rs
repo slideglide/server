@@ -91,7 +91,7 @@ impl FetchedIncompatibility {
 }
 
 impl Incompatibility {
-    #[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
+    #[tracing::instrument(skip_all, fields(mod_version_id = %id))]
     pub async fn get_for_mod_version(
         id: i32,
         pool: &mut PgConnection,
@@ -110,7 +110,7 @@ impl Incompatibility {
         .map_err(|e| e.into())
     }
 
-    #[tracing::instrument(skip_all, err, fields(mod_version_ids = ?ids))]
+    #[tracing::instrument(skip_all, fields(mod_version_ids = ?ids))]
     pub async fn get_for_mod_versions(
         ids: &Vec<i32>,
         platform: Option<VerPlatform>,

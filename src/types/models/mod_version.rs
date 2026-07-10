@@ -149,6 +149,7 @@ impl ModVersion {
         self.modify_download_link(app_url)
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_id = %query.mod_id, page = %query.page, per_page = %query.per_page))]
     pub async fn get_index(
         query: IndexQuery,
         pool: &mut PgConnection,
@@ -248,14 +249,12 @@ impl ModVersion {
         let records = q
             .build_query_as::<ModVersionGetOne>()
             .fetch_all(&mut *pool)
-            .await
-            .inspect_err(|e| tracing::error!("Failed to fetch index: {e}"))?;
+            .await?;
 
         let count: i64 = counter_q
             .build_query_scalar()
             .fetch_one(&mut *pool)
-            .await
-            .inspect_err(|e| tracing::error!("Failed to fetch index count: {e}"))?;
+            .await?;
 
         if records.is_empty() {
             return Ok(PaginatedData {
@@ -299,6 +298,7 @@ impl ModVersion {
         Ok(PaginatedData { data: ret, count })
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_ids = ?ids, gd = ?gd))]
     pub async fn get_latest_for_mods(
         pool: &mut PgConnection,
         ids: &[String],
@@ -371,7 +371,6 @@ impl ModVersion {
         .bind(requires_patching)
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|x| tracing::error!("Failed to fetch latest versions for mods: {}", x))
         .map_err(|e| e.into())
         .map(|result: Vec<ModVersionGetOne>| {
             result.into_iter()
@@ -380,6 +379,7 @@ impl ModVersion {
         })
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_ids = ?ids))]
     pub async fn get_pending_for_mods(
         ids: &[String],
         pool: &mut PgConnection,
@@ -402,8 +402,7 @@ impl ModVersion {
             ORDER BY mv.id DESC"#,
             ids
         ).fetch_all(&mut *pool)
-        .await
-        .inspect_err(|e| tracing::error!("Failed to fetch pending mod versions: {}", e))?;
+        .await?;
 
         let mut ret: HashMap<String, Vec<ModVersion>> = HashMap::new();
 
@@ -416,6 +415,7 @@ impl ModVersion {
         Ok(ret)
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_id = %id, gd = ?gd))]
     pub async fn get_latest_for_mod(
         id: &str,
         gd: Option<GDVersionEnum>,
@@ -471,8 +471,7 @@ impl ModVersion {
         let version = query_builder
             .build_query_as::<ModVersionGetOne>()
             .fetch_optional(&mut *pool)
-            .await
-            .inspect_err(|e| tracing::error!("Failed to fetch latest mod_version for mod {id}: {e}"))?
+            .await?
             .map(|v| v.into_mod_version());
 
         let Some(mut version) = version else {
@@ -505,6 +504,7 @@ impl ModVersion {
         Ok(Some(version))
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_id = %id, version = %version))]
     pub async fn get_one(
         id: &str,
         version: &str,
@@ -531,8 +531,7 @@ impl ModVersion {
             fetch_only_accepted
         )
         .fetch_optional(&mut *pool)
-        .await
-        .inspect_err(|e| tracing::error!("ModVersion::get_one failed: {e}"))?
+        .await?
         .map(|x| x.into_mod_version());
 
         let Some(mut version) = result else {
@@ -562,6 +561,7 @@ impl ModVersion {
         Ok(Some(version))
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
     pub async fn get_accepted_count(
         mod_id: &str,
         pool: &mut PgConnection,

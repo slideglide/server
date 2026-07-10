@@ -116,6 +116,7 @@ impl Mod {
         }
     }
 
+    #[tracing::instrument(skip_all, err)]
     pub async fn get_stats(pool: &mut PgConnection) -> Result<ModStats, DatabaseError> {
         let result = sqlx::query!(
             "
@@ -131,8 +132,7 @@ impl Mod {
         "
         )
         .fetch_optional(&mut *pool)
-        .await
-        .inspect_err(|e| tracing::error!("failed to get mod stats: {}", e))?;
+        .await?;
 
         if let Some((Some(total_count), Some(total_downloads))) =
             result.map(|o| (o.id_count, o.download_sum))
@@ -149,6 +149,7 @@ impl Mod {
         }
     }
 
+    #[tracing::instrument(skip_all, err, fields(query = ?query.query, page = ?query.page, per_page = ?query.per_page))]
     pub async fn get_index(
         pool: &mut PgConnection,
         query: &IndexQueryParams,
@@ -361,8 +362,7 @@ impl Mod {
         let records: Vec<ModRecord> = records_builder
             .build_query_as()
             .fetch_all(&mut *pool)
-            .await
-            .inspect_err(|e| tracing::error!("Failed to fetch mod index: {}", e))?;
+            .await?;
 
         let mut count_builder = sqlx::QueryBuilder::new("SELECT COUNT(DISTINCT m.id) ");
 
@@ -371,8 +371,7 @@ impl Mod {
         let count: i64 = count_builder
             .build_query_scalar()
             .fetch_optional(&mut *pool)
-            .await
-            .inspect_err(|e| tracing::error!("Failed to fetch mod index count: {}", e))?
+            .await?
             .unwrap_or_default();
 
         if records.is_empty() {
@@ -486,6 +485,7 @@ impl Mod {
         })
     }
 
+    #[tracing::instrument(skip_all, err, fields(developer_id = %id, status = ?status, only_owner = %only_owner))]
     pub async fn get_all_for_dev(
         id: i32,
         status: ModVersionStatusEnum,
@@ -528,8 +528,7 @@ impl Mod {
             only_owner
         )
         .fetch_all(&mut *pool)
-        .await
-        .inspect_err(|x| tracing::error!("Failed to fetch developer mods: {}", x))?;
+        .await?;
 
         if records.is_empty() {
             return Ok(vec![]);
@@ -572,6 +571,7 @@ impl Mod {
         Ok(mods)
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_id = %id, only_accepted = %only_accepted))]
     pub async fn get_one(
         id: &str,
         only_accepted: bool,
@@ -596,8 +596,7 @@ impl Mod {
             only_accepted
         )
         .fetch_all(&mut *pool)
-        .await
-        .inspect_err(|e| tracing::error!("{}", e))?;
+        .await?;
 
         if records.is_empty() {
             return Ok(None);
@@ -670,6 +669,7 @@ impl Mod {
 
     /// At the moment this is only used to set the mod to featured.
     /// DOES NOT check if the mod exists
+    #[tracing::instrument(skip_all, err, fields(mod_id = %id, featured = %featured))]
     pub async fn update_mod(
         id: &str,
         featured: bool,
@@ -678,11 +678,11 @@ impl Mod {
         sqlx::query!("UPDATE mods SET featured = $1 WHERE id = $2", featured, id)
             .execute(&mut *pool)
             .await
-            .inspect_err(|e| tracing::error!("Failed to update mod {id}: {e}"))
             .map_err(|e| e.into())
             .map(|_| ())
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_ids = ?ids, platform = ?platforms, gd = ?gd))]
     pub async fn get_updates(
         ids: &[String],
         platforms: VerPlatform,
@@ -748,8 +748,7 @@ impl Mod {
             geode_pre
         )
         .fetch_all(&mut *pool)
-        .await
-        .inspect_err(|x| tracing::error!("Failed to fetch mod updates: {}", x))?;
+        .await?;
 
         if result.is_empty() {
             return Ok(vec![]);

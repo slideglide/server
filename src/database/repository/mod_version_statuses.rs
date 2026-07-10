@@ -2,6 +2,7 @@ use crate::database::DatabaseError;
 use crate::types::models::mod_version_status::ModVersionStatusEnum;
 use sqlx::PgConnection;
 
+#[tracing::instrument(skip_all, err, fields(mod_version_id = %mod_version_id, status = ?status))]
 pub async fn create(
     mod_version_id: i32,
     status: ModVersionStatusEnum,
@@ -19,7 +20,6 @@ pub async fn create(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to create mod_version_status: {e}"))
     .map(|i| i.id)
     .map_err(|e| e.into())
 }

@@ -108,6 +108,7 @@ pub enum DependencyImportance {
 }
 
 impl Dependency {
+    #[tracing::instrument(skip_all, err, fields(mod_version_ids = ?ids))]
     pub async fn get_for_mod_versions(
         ids: &Vec<i32>,
         platform: Option<VerPlatform>,
@@ -190,8 +191,7 @@ impl Dependency {
         .bind(geode.map(|x| i32::try_from(x.patch).unwrap_or_default()))
         .bind(geode_pre)
         .fetch_all(&mut *pool)
-        .await
-        .inspect_err(|x| tracing::error!("Failed to fetch dependencies: {x}"))?;
+        .await?;
 
         let mut ret: HashMap<i32, Vec<FetchedDependency>> = HashMap::new();
         for i in result {

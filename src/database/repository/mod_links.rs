@@ -2,6 +2,7 @@ use sqlx::PgConnection;
 
 use crate::{database::DatabaseError, types::models::mod_link::ModLinks};
 
+#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
 pub async fn upsert(
     mod_id: &str,
     community: Option<String>,
@@ -25,8 +26,7 @@ pub async fn upsert(
         source
     )
     .execute(&mut *conn)
-    .await
-    .inspect_err(|x| tracing::error!("Failed to upsert mod_links for id {mod_id}: {x}"))?;
+    .await?;
 
     Ok(ModLinks {
         mod_id: mod_id.into(),

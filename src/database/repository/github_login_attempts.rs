@@ -5,6 +5,7 @@ use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgConnection;
 use uuid::Uuid;
 
+#[tracing::instrument(skip_all, err)]
 pub async fn get_one_by_ip(
     ip: IpNetwork,
     conn: &mut PgConnection,
@@ -27,10 +28,10 @@ pub async fn get_one_by_ip(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch existing login attempt: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn get_one_by_uuid(
     uuid: Uuid,
     pool: &mut PgConnection,
@@ -53,10 +54,10 @@ pub async fn get_one_by_uuid(
     )
     .fetch_optional(pool)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch GitHub login attempt: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn create(
     ip: IpNetwork,
     device_code: String,
@@ -90,10 +91,10 @@ pub async fn create(
     )
     .fetch_one(&mut *pool)
     .await
-    .inspect_err(|e| tracing::error!("Failed to insert new GitHub login attempt: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn poll_now(uuid: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     let now = Utc::now();
     sqlx::query!(
@@ -104,17 +105,16 @@ pub async fn poll_now(uuid: Uuid, conn: &mut PgConnection) -> Result<(), Databas
         uuid
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to poll GitHub login attempt: {e}"))?;
+    .await?;
 
     Ok(())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn remove(uuid: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!("DELETE FROM github_login_attempts WHERE uid = $1", uuid)
         .execute(conn)
-        .await
-        .inspect_err(|e| tracing::error!("Failed to remove GitHub login attempt: {e}"))?;
+        .await?;
 
     Ok(())
 }

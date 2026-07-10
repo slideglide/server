@@ -91,6 +91,7 @@ impl FetchedIncompatibility {
 }
 
 impl Incompatibility {
+    #[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
     pub async fn get_for_mod_version(
         id: i32,
         pool: &mut PgConnection,
@@ -106,10 +107,10 @@ impl Incompatibility {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| tracing::error!("Failed to fetch incompatibilities for mod_version {id}: {e}"))
         .map_err(|e| e.into())
     }
 
+    #[tracing::instrument(skip_all, err, fields(mod_version_ids = ?ids))]
     pub async fn get_for_mod_versions(
         ids: &Vec<i32>,
         platform: Option<VerPlatform>,
@@ -161,9 +162,7 @@ impl Incompatibility {
         .bind(geode.map(|x| i64::try_from(x.patch).ok()))
         .bind(geode_pre);
 
-        let result = q.fetch_all(&mut *pool).await.inspect_err(|e| {
-            tracing::error!("Failed to fetch incompatibilities for mod_versions: {e}")
-        })?;
+        let result = q.fetch_all(&mut *pool).await?;
 
         let mut ret: HashMap<i32, Vec<FetchedIncompatibility>> = HashMap::new();
 

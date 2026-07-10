@@ -20,6 +20,7 @@ pub struct GDVersionAlias {
 }
 
 impl GDVersionAlias {
+    #[tracing::instrument(skip_all, err, fields(platform = ?platform, identifier = %identifier))]
     pub async fn find(
         platform: VerPlatform,
         identifier: &str,

@@ -60,6 +60,7 @@ impl ModVersionRow {
     }
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id, version = %version))]
 pub async fn get_by_version_str(
     mod_id: &str,
     version: &str,
@@ -83,11 +84,11 @@ pub async fn get_by_version_str(
     )
         .fetch_optional(conn)
         .await
-        .inspect_err(|e| tracing::error!("Failed to get mod_version by version string: {e}"))
         .map_err(|e| e.into())
         .map(|opt| opt.map(|x| x.into_mod_version()))
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id, statuses = ?statuses))]
 pub async fn get_for_mod(
     mod_id: &str,
     statuses: Option<&[ModVersionStatusEnum]>,
@@ -111,8 +112,7 @@ pub async fn get_for_mod(
         statuses as Option<&[ModVersionStatusEnum]>
     )
         .fetch_all(&mut *conn)
-        .await
-        .inspect_err(|e| tracing::error!("Failed to get mod_versions for mod {mod_id}: {e}"))?;
+        .await?;
 
     let version_ids: Vec<i32> = records.iter().map(|x| x.id).collect();
     let mut gd_versions = ModGDVersion::get_for_mod_versions(&version_ids, conn).await?;
@@ -129,6 +129,7 @@ pub async fn get_for_mod(
     Ok(versions)
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_version_id = %id))]
 pub async fn increment_downloads(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "UPDATE mod_versions
@@ -137,12 +138,12 @@ pub async fn increment_downloads(id: i32, conn: &mut PgConnection) -> Result<(),
         id
     )
     .execute(&mut *conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to increment downloads for mod_version {id}: {e}"))?;
+    .await?;
 
     Ok(())
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_id = %json.id, version = %json.version))]
 pub async fn create_from_json(
     json: &ModJson,
     make_accepted: bool,
@@ -150,8 +151,7 @@ pub async fn create_from_json(
 ) -> Result<ModVersion, DatabaseError> {
     sqlx::query!("SET CONSTRAINTS mod_versions_status_id_fkey DEFERRED")
         .execute(&mut *conn)
-        .await
-        .inspect_err(|e| tracing::error!("Failed to update constraint: {e}"))?;
+        .await?;
 
     let geode = Version::parse(&json.geode).or(Err(DatabaseError::InvalidInput(
         "mod.json geode version is invalid semver".into(),
@@ -191,8 +191,7 @@ pub async fn create_from_json(
         json.requires_patching
     )
     .fetch_one(&mut *conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to insert mod_version: {e}"))?;
+    .await?;
 
     let id = row.id;
 
@@ -208,13 +207,11 @@ pub async fn create_from_json(
         id
     )
     .execute(&mut *conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to set status: {e}"))?;
+    .await?;
 
     sqlx::query!("SET CONSTRAINTS mod_versions_status_id_fkey IMMEDIATE")
         .execute(&mut *conn)
-        .await
-        .inspect_err(|e| tracing::error!("Failed to update constraint: {e}"))?;
+        .await?;
 
     Ok(ModVersion {
         id,
@@ -242,6 +239,7 @@ pub async fn create_from_json(
     })
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_version_id = %version_id, mod_id = %json.id, version = %json.version))]
 pub async fn update_pending_version(
     version_id: i32,
     json: &ModJson,
@@ -304,14 +302,7 @@ pub async fn update_pending_version(
         version_id
     )
     .fetch_one(&mut *conn)
-    .await
-    .inspect_err(|err| {
-        tracing::error!(
-            "Failed to update pending version {}-{}: {err}",
-            json.id,
-            json.version
-        )
-    })?;
+    .await?;
 
     if make_accepted {
         sqlx::query!(
@@ -321,8 +312,7 @@ pub async fn update_pending_version(
             row.status_id
         )
         .execute(&mut *conn)
-        .await
-        .inspect_err(|e| tracing::error!("Failed to update tag for mod: {e}"))?;
+        .await?;
     }
 
     Ok(ModVersion {
@@ -354,6 +344,7 @@ pub async fn update_pending_version(
     })
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_version_id = %version.id, status = ?status))]
 pub async fn update_version_status(
     mut version: ModVersion,
     status: ModVersionStatusEnum,
@@ -378,8 +369,7 @@ pub async fn update_version_status(
         version.id
     )
     .execute(&mut *conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to update mod_version_status: {e}"))?;
+    .await?;
 
     version.status = status;
 

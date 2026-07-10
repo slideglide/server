@@ -5,6 +5,7 @@ use sqlx::PgConnection;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+#[tracing::instrument(skip_all, err, fields(query = ?query))]
 pub async fn index(
     query: Option<&str>,
     page: i64,
@@ -36,8 +37,7 @@ pub async fn index(
         offset
     )
     .fetch_all(&mut *conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developers: {}", e))?;
+    .await?;
 
     let count = index_count(query, &mut *conn).await?;
 
@@ -47,6 +47,7 @@ pub async fn index(
     })
 }
 
+#[tracing::instrument(skip_all, err, fields(query = ?query))]
 pub async fn index_count(
     query: Option<&str>,
     conn: &mut PgConnection,
@@ -62,11 +63,11 @@ pub async fn index_count(
     )
     .fetch_one(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developer count: {}", e))
     .map(|x| x.count.unwrap_or(0))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(github_id = %github_id, username = %username))]
 pub async fn fetch_or_insert_github(
     github_id: i64,
     username: &str,
@@ -86,14 +87,14 @@ pub async fn fetch_or_insert_github(
         github_id
     )
     .fetch_optional(&mut *conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developer for GitHub id: {e}"))?
+    .await?
     {
         Some(dev) => Ok(dev),
         None => Ok(insert_github(github_id, username, conn).await?),
     }
 }
 
+#[tracing::instrument(skip_all, err, fields(github_id = %github_id, username = %username))]
 async fn insert_github(
     github_id: i64,
     username: &str,
@@ -115,10 +116,10 @@ async fn insert_github(
     )
     .fetch_one(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to insert developer: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %id))]
 pub async fn get_one(id: i32, conn: &mut PgConnection) -> Result<Option<Developer>, DatabaseError> {
     sqlx::query_as!(
         Developer,
@@ -135,10 +136,10 @@ pub async fn get_one(id: i32, conn: &mut PgConnection) -> Result<Option<Develope
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developer {id}: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_ids = ?ids))]
 pub async fn get_many_by_id(
     ids: &[i32],
     conn: &mut PgConnection,
@@ -161,10 +162,10 @@ pub async fn get_many_by_id(
     )
     .fetch_all(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developers by id: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(username = %username))]
 pub async fn get_one_by_username(
     username: &str,
     conn: &mut PgConnection,
@@ -191,10 +192,10 @@ pub async fn get_one_by_username(
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developer {username}: {e}"))
     .map_err(|x| x.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
 pub async fn get_all_for_mod(
     mod_id: &str,
     conn: &mut PgConnection,
@@ -214,10 +215,10 @@ pub async fn get_all_for_mod(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developers for mod {}: {}", mod_id, e))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_ids = ?mod_ids))]
 pub async fn get_all_for_mods(
     mod_ids: &[String],
     conn: &mut PgConnection,
@@ -248,8 +249,7 @@ pub async fn get_all_for_mods(
         mod_ids
     )
     .fetch_all(conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to fetch developers for mods: {}", e))?;
+    .await?;
 
     let mut ret: HashMap<String, Vec<ModDeveloper>> = HashMap::new();
 
@@ -267,6 +267,7 @@ pub async fn get_all_for_mods(
     Ok(ret)
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id, mod_id = %mod_id))]
 pub async fn has_access_to_mod(
     dev_id: i32,
     mod_id: &str,
@@ -281,18 +282,11 @@ pub async fn has_access_to_mod(
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| {
-        tracing::error!(
-            "Failed to find mod {} access for developer {}: {}",
-            mod_id,
-            dev_id,
-            e
-        );
-    })
     .map(|x| x.is_some())
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id))]
 pub async fn has_active_mod(dev_id: i32, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     sqlx::query!(
         "SELECT mods.id FROM mods
@@ -306,11 +300,11 @@ pub async fn has_active_mod(dev_id: i32, conn: &mut PgConnection) -> Result<bool
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| tracing::error!("developers::has_active_mod failed: {e}"))
     .map_err(|e| e.into())
     .map(|result| result.is_some())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id, mod_id = %mod_id))]
 pub async fn owns_mod(
     dev_id: i32,
     mod_id: &str,
@@ -325,18 +319,11 @@ pub async fn owns_mod(
         mod_id
     )
     .fetch_optional(&mut *conn)
-    .await
-    .inspect_err(|e| {
-        tracing::error!(
-            "Failed to check mod {} owner for developer {}: {}",
-            mod_id,
-            dev_id,
-            e
-        )
-    })?
+    .await?
     .is_some())
 }
 
+#[tracing::instrument(skip_all, err, fields(mod_id = %mod_id))]
 pub async fn get_owner_for_mod(
     mod_id: &str,
     conn: &mut PgConnection,
@@ -358,10 +345,10 @@ pub async fn get_owner_for_mod(
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to fetch owner for mod {mod_id}: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id))]
 pub async fn update_status(
     dev_id: i32,
     verified: bool,
@@ -387,10 +374,10 @@ pub async fn update_status(
     )
     .fetch_one(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to update developer {dev_id}: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %dev_id))]
 pub async fn update_profile(
     dev_id: i32,
     display_name: &str,
@@ -413,10 +400,10 @@ pub async fn update_profile(
     )
     .fetch_one(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to update profile for {dev_id}: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn find_by_refresh_token(
     uuid: Uuid,
     conn: &mut PgConnection,
@@ -439,10 +426,10 @@ pub async fn find_by_refresh_token(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| tracing::error!("Failed to search for developer by refresh token: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn find_by_token(
     token: &Uuid,
     conn: &mut PgConnection,
@@ -468,10 +455,10 @@ pub async fn find_by_token(
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| tracing::error!("{}", e))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %id))]
 pub async fn has_accepted_mod(id: i32, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     sqlx::query!(
         "SELECT mod_versions.id
@@ -486,6 +473,5 @@ pub async fn has_accepted_mod(id: i32, conn: &mut PgConnection) -> Result<bool, 
     .fetch_optional(conn)
     .await
     .map(|x| x.is_some())
-    .inspect_err(|e| tracing::error!("developers::has_accepted_mod failed: {e}"))
     .map_err(|e| e.into())
 }

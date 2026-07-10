@@ -3,6 +3,7 @@ use chrono::{Days, Utc};
 use sqlx::PgConnection;
 use uuid::Uuid;
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %developer_id))]
 pub async fn generate_token(
     developer_id: i32,
     conn: &mut PgConnection,
@@ -19,12 +20,12 @@ pub async fn generate_token(
         expiry
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to insert refresh token: {e}"))?;
+    .await?;
 
     Ok(token)
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     let hash = sha256::digest(token.to_string());
     sqlx::query!(
@@ -33,12 +34,12 @@ pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), Da
         hash
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to remove refresh token: {e}"))?;
+    .await?;
 
     Ok(())
 }
 
+#[tracing::instrument(skip_all, err, fields(developer_id = %developer_id))]
 pub async fn remove_developer_tokens(
     developer_id: i32,
     conn: &mut PgConnection,
@@ -49,20 +50,19 @@ pub async fn remove_developer_tokens(
         developer_id
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| tracing::error!("Failed to remove refresh tokens: {e}"))?;
+    .await?;
 
     Ok(())
 }
 
+#[tracing::instrument(skip_all, err)]
 pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!(
         "DELETE FROM refresh_tokens
         WHERE expires_at < NOW()"
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| tracing::error!("Refresh token cleanup failed: {e}"))?;
+    .await?;
 
     Ok(())
 }

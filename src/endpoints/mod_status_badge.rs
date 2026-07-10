@@ -71,7 +71,10 @@ pub async fn status_badge(
         .static_storage()
         .read(svg_path)
         .await
-        .map_err(|_| ApiError::InternalError("Failed to read status badge file".into()))?;
+        .map_err(|e| {
+            tracing::error!(error = ?e, "failed to read status badge file");
+            ApiError::InternalError("Failed to read status badge file".into())
+        })?;
     let api_url = format!("{}/v1/mods/{}?abbreviate=true", data.app_url(), id);
     let mod_link = format!("{}/mods/{}", data.front_url(), id);
     let svg_data_url = format!("data:image/svg+xml;utf8,{}", urlencoding::encode_binary(&svg));

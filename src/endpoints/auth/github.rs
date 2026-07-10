@@ -285,7 +285,10 @@ pub async fn github_token_login(
         Err(_) => client
             .get_installation(&json.token)
             .await
-            .map_err(|_| ApiError::BadRequest(format!("Invalid access token: {}", json.token)))?,
+            .map_err(|e| {
+                tracing::error!(error = ?e, "invalid access token");
+                ApiError::BadRequest(format!("Invalid access token: {}", json.token))
+            })?,
 
         Ok(u) => u,
     };

@@ -306,7 +306,8 @@ impl ModJson {
                         continue;
                     }
                     let (dependency_ver, compare) = split_version_and_compare(&(i.version))
-                        .map_err(|_| {
+                        .map_err(|e| {
+                            tracing::error!(error = ?e, "invalid semver in dependency version");
                             ModZipError::InvalidModJson(format!("Invalid semver {}", i.version))
                         })?;
                     ret.push(DependencyCreate {
@@ -329,7 +330,11 @@ impl ModJson {
                     match dep {
                         ModJsonDependencyType::Version(version) => {
                             let (dependency_ver, compare) = split_version_and_compare(version)
-                                .map_err(|_| {
+                                .map_err(|e| {
+                                    tracing::error!(
+                                        error = ?e,
+                                        "invalid semver in dependency version"
+                                    );
                                     ModZipError::InvalidModJson(format!(
                                         "Invalid semver {}",
                                         version
@@ -359,7 +364,11 @@ impl ModJson {
                                 }
                             };
                             let (dependency_ver, compare) = split_version_and_compare(dep_ver)
-                                .map_err(|_| {
+                                .map_err(|e| {
+                                    tracing::error!(
+                                        error = ?e,
+                                        "invalid semver in dependency version"
+                                    );
                                     ModZipError::InvalidModJson(format!(
                                         "Invalid semver {}",
                                         dep_ver
@@ -406,7 +415,8 @@ impl ModJson {
                         continue;
                     }
 
-                    let (ver, compare) = split_version_and_compare(&(i.version)).map_err(|_| {
+                    let (ver, compare) = split_version_and_compare(&(i.version)).map_err(|e| {
+                        tracing::error!(error = ?e, "invalid semver in incompatibility version");
                         ModZipError::InvalidModJson(format!("Invalid semver: {}", i.version))
                     })?;
                     ret.push(IncompatibilityCreate {
@@ -430,7 +440,11 @@ impl ModJson {
                     match item {
                         ModJsonIncompatibilityType::Version(version) => {
                             let (ver, compare) =
-                                split_version_and_compare(version).map_err(|_| {
+                                split_version_and_compare(version).map_err(|e| {
+                                    tracing::error!(
+                                        error = ?e,
+                                        "invalid semver in incompatibility version"
+                                    );
                                     ModZipError::InvalidModJson(format!(
                                         "Invalid semver {}",
                                         version
@@ -460,7 +474,11 @@ impl ModJson {
                                 }
                             };
                             let (ver, compare) =
-                                split_version_and_compare(inc_ver).map_err(|_| {
+                                split_version_and_compare(inc_ver).map_err(|e| {
+                                    tracing::error!(
+                                        error = ?e,
+                                        "invalid semver in incompatibility version"
+                                    );
                                     ModZipError::InvalidModJson(format!(
                                         "Invalid semver {}",
                                         inc_ver
@@ -532,8 +550,10 @@ impl ModJson {
         }
 
         let v5: bool = {
-            let geode = Version::parse(self.geode.trim_start_matches('v'))
-                .map_err(|_| ModZipError::InvalidModJson("Invalid geode version".into()))?;
+            let geode = Version::parse(self.geode.trim_start_matches('v')).map_err(|e| {
+                tracing::error!(error = ?e, "invalid semver in geode version");
+                ModZipError::InvalidModJson("Invalid geode version".into())
+            })?;
             geode.major >= 5
         };
 

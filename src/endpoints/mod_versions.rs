@@ -343,7 +343,7 @@ pub async fn create_version(
 
     let bytes = download_mod(&download_link, data.max_download_mb()).await?;
     let json = ModJson::from_zip(bytes, &download_link, make_accepted)
-        .inspect_err(|e| log::error!("Failed to parse mod.json: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to parse mod.json: {e}"))?;
     if json.id != the_mod.id {
         return Err(ApiError::BadRequest(format!(
             "Request id {} does not match mod.json id {}",
@@ -367,7 +367,7 @@ pub async fn create_version(
     } else {
         let latest = versions.first().unwrap();
         let latest_version = semver::Version::parse(&latest.version)
-            .inspect_err(|e| log::error!("Failed to parse locally stored version: {}", e))
+            .inspect_err(|e| tracing::error!("Failed to parse locally stored version: {}", e))
             .or(Err(ApiError::InternalError(format!(
                 "Failed to parse semver for existing mod version: {}",
                 &latest.version

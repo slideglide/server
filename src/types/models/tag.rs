@@ -26,7 +26,7 @@ impl Tag {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("{}", e))
+        .inspect_err(|e| tracing::error!("{}", e))
         .map(|tags| tags.into_iter().map(|t| t.name).collect::<Vec<_>>())
         .map_err(|e| e.into())
     }
@@ -43,7 +43,7 @@ impl Tag {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("{}", e))?;
+        .inspect_err(|e| tracing::error!("{}", e))?;
 
         let mut ret: HashMap<String, Vec<String>> = HashMap::new();
         for tag in tags {
@@ -69,7 +69,7 @@ impl Tag {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch tags: {}", e))?;
+        .inspect_err(|e| tracing::error!("Failed to fetch tags: {}", e))?;
 
         let fetched_ids = fetched.iter().map(|t| t.id).collect::<Vec<i32>>();
         let fetched_names = fetched

@@ -249,13 +249,13 @@ impl ModVersion {
             .build_query_as::<ModVersionGetOne>()
             .fetch_all(&mut *pool)
             .await
-            .inspect_err(|e| log::error!("Failed to fetch index: {e}"))?;
+            .inspect_err(|e| tracing::error!("Failed to fetch index: {e}"))?;
 
         let count: i64 = counter_q
             .build_query_scalar()
             .fetch_one(&mut *pool)
             .await
-            .inspect_err(|e| log::error!("Failed to fetch index count: {e}"))?;
+            .inspect_err(|e| tracing::error!("Failed to fetch index count: {e}"))?;
 
         if records.is_empty() {
             return Ok(PaginatedData {
@@ -371,7 +371,7 @@ impl ModVersion {
         .bind(requires_patching)
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|x| log::error!("Failed to fetch latest versions for mods: {}", x))
+        .inspect_err(|x| tracing::error!("Failed to fetch latest versions for mods: {}", x))
         .map_err(|e| e.into())
         .map(|result: Vec<ModVersionGetOne>| {
             result.into_iter()
@@ -403,7 +403,7 @@ impl ModVersion {
             ids
         ).fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch pending mod versions: {}", e))?;
+        .inspect_err(|e| tracing::error!("Failed to fetch pending mod versions: {}", e))?;
 
         let mut ret: HashMap<String, Vec<ModVersion>> = HashMap::new();
 
@@ -472,7 +472,7 @@ impl ModVersion {
             .build_query_as::<ModVersionGetOne>()
             .fetch_optional(&mut *pool)
             .await
-            .inspect_err(|e| log::error!("Failed to fetch latest mod_version for mod {id}: {e}"))?
+            .inspect_err(|e| tracing::error!("Failed to fetch latest mod_version for mod {id}: {e}"))?
             .map(|v| v.into_mod_version());
 
         let Some(mut version) = version else {
@@ -532,7 +532,7 @@ impl ModVersion {
         )
         .fetch_optional(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("ModVersion::get_one failed: {e}"))?
+        .inspect_err(|e| tracing::error!("ModVersion::get_one failed: {e}"))?
         .map(|x| x.into_mod_version());
 
         let Some(mut version) = result else {

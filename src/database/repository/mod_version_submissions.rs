@@ -22,7 +22,7 @@ pub async fn get_for_mod_version(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_for_mod_versions failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::get_for_mod_versions failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -40,7 +40,7 @@ pub async fn get_audit_for_submission(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_audit_for_submission failed: {e}",))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::get_audit_for_submission failed: {e}",))
     .map_err(|e| e.into())
 }
 
@@ -57,7 +57,7 @@ pub async fn create(
     )
     .fetch_one(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::create failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("mod_version_submissions::create failed: {e}"))?;
 
     insert_submission_audit(mod_version_id, AuditAction::Created, None, None, conn).await?;
     Ok(row)
@@ -102,7 +102,7 @@ pub async fn set_locked(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::set_locked failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::set_locked failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -128,7 +128,7 @@ pub async fn get_paginated_comments_for_submission(
     .fetch_all(conn)
     .await
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::get_paginated_items_for_submission failed: {e}")
+        tracing::error!("mod_version_submissions::get_paginated_items_for_submission failed: {e}")
     })
     .map_err(|e| e.into())
 }
@@ -144,7 +144,7 @@ pub async fn count_comments_for_submission(
     .fetch_one(conn)
     .await
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_comments_for_submission failed: {e}")
+        tracing::error!("mod_version_submissions::count_comments_for_submission failed: {e}")
     })
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
@@ -167,7 +167,7 @@ pub async fn create_comment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::create_comment failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::create_comment failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -184,7 +184,7 @@ pub async fn get_comment(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_comment failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::get_comment failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -204,7 +204,7 @@ pub async fn update_comment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::update_comment failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::update_comment failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -218,7 +218,7 @@ pub async fn delete_comment(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::delete_comment failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("mod_version_submissions::delete_comment failed: {e}"))?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -236,7 +236,7 @@ pub async fn get_audit_for_comment(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_audit_for_comment failed: {e}",))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::get_audit_for_comment failed: {e}",))
     .map_err(|e| e.into())
 }
 
@@ -251,7 +251,7 @@ pub async fn count_attachments_for_comment(
     .fetch_one(conn)
     .await
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_attachments_for_comment failed: {e}")
+        tracing::error!("mod_version_submissions::count_attachments_for_comment failed: {e}")
     })
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
@@ -272,7 +272,7 @@ pub async fn create_attachment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::create_attachment failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::create_attachment failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -291,7 +291,7 @@ pub async fn get_attachments_for_comment(
     .fetch_all(conn)
     .await
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::get_attachments_for_comment failed: {e}")
+        tracing::error!("mod_version_submissions::get_attachments_for_comment failed: {e}")
     })
     .map_err(|e: Error| e.into())
 }
@@ -311,7 +311,7 @@ pub async fn get_attachments_for_comments(
     .fetch_all(conn)
     .await
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::get_attachments_for_comments failed: {e}")
+        tracing::error!("mod_version_submissions::get_attachments_for_comments failed: {e}")
     })?;
 
     let mut ret: HashMap<i64, Vec<ModVersionSubmissionAttachmentRow>> = HashMap::with_capacity(comment_ids.len());
@@ -336,7 +336,7 @@ pub async fn get_attachment(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_attachment failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::get_attachment failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -350,7 +350,7 @@ pub async fn delete_attachment(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::delete_attachment failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("mod_version_submissions::delete_attachment failed: {e}"))?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -365,7 +365,7 @@ pub async fn count_references_to_filename(
     .fetch_one(conn)
     .await
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_references_to_filename failed: {e}")
+        tracing::error!("mod_version_submissions::count_references_to_filename failed: {e}")
     })
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
@@ -391,7 +391,7 @@ pub async fn count_references_to_filenames(
             .collect()
     })
     .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_references_to_filenames failed: {e}")
+        tracing::error!("mod_version_submissions::count_references_to_filenames failed: {e}")
     })
     .map_err(|e| e.into())
 }
@@ -414,7 +414,7 @@ pub async fn insert_submission_audit(
     .execute(conn)
     .await
     .map(|_| ())
-    .inspect_err(|e| log::error!("mod_version_submissions::insert_submission_audit failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_version_submissions::insert_submission_audit failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -436,6 +436,6 @@ pub async fn insert_comment_audit(
         .execute(conn)
         .await
         .map(|_| ())
-        .inspect_err(|e| log::error!("mod_version_submissions::insert_comment_audit failed: {e}"))
+        .inspect_err(|e| tracing::error!("mod_version_submissions::insert_comment_audit failed: {e}"))
         .map_err(|e| e.into())
 }

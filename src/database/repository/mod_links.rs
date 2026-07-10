@@ -26,7 +26,7 @@ pub async fn upsert(
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|x| log::error!("Failed to upsert mod_links for id {mod_id}: {x}"))?;
+    .inspect_err(|x| tracing::error!("Failed to upsert mod_links for id {mod_id}: {x}"))?;
 
     Ok(ModLinks {
         mod_id: mod_id.into(),

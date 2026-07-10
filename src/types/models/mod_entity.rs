@@ -132,7 +132,7 @@ impl Mod {
         )
         .fetch_optional(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("failed to get mod stats: {}", e))?;
+        .inspect_err(|e| tracing::error!("failed to get mod stats: {}", e))?;
 
         if let Some((Some(total_count), Some(total_downloads))) =
             result.map(|o| (o.id_count, o.download_sum))
@@ -356,13 +356,13 @@ impl Mod {
         records_builder.push(" LIMIT ").push_bind(limit);
         records_builder.push(" OFFSET ").push_bind(offset);
 
-        // log::debug!("sql: {}", records_builder.sql());
+        // tracing::debug!("sql: {}", records_builder.sql());
 
         let records: Vec<ModRecord> = records_builder
             .build_query_as()
             .fetch_all(&mut *pool)
             .await
-            .inspect_err(|e| log::error!("Failed to fetch mod index: {}", e))?;
+            .inspect_err(|e| tracing::error!("Failed to fetch mod index: {}", e))?;
 
         let mut count_builder = sqlx::QueryBuilder::new("SELECT COUNT(DISTINCT m.id) ");
 
@@ -372,7 +372,7 @@ impl Mod {
             .build_query_scalar()
             .fetch_optional(&mut *pool)
             .await
-            .inspect_err(|e| log::error!("Failed to fetch mod index count: {}", e))?
+            .inspect_err(|e| tracing::error!("Failed to fetch mod index count: {}", e))?
             .unwrap_or_default();
 
         if records.is_empty() {
@@ -529,7 +529,7 @@ impl Mod {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|x| log::error!("Failed to fetch developer mods: {}", x))?;
+        .inspect_err(|x| tracing::error!("Failed to fetch developer mods: {}", x))?;
 
         if records.is_empty() {
             return Ok(vec![]);
@@ -597,7 +597,7 @@ impl Mod {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("{}", e))?;
+        .inspect_err(|e| tracing::error!("{}", e))?;
 
         if records.is_empty() {
             return Ok(None);
@@ -678,7 +678,7 @@ impl Mod {
         sqlx::query!("UPDATE mods SET featured = $1 WHERE id = $2", featured, id)
             .execute(&mut *pool)
             .await
-            .inspect_err(|e| log::error!("Failed to update mod {id}: {e}"))
+            .inspect_err(|e| tracing::error!("Failed to update mod {id}: {e}"))
             .map_err(|e| e.into())
             .map(|_| ())
     }
@@ -749,7 +749,7 @@ impl Mod {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|x| log::error!("Failed to fetch mod updates: {}", x))?;
+        .inspect_err(|x| tracing::error!("Failed to fetch mod updates: {}", x))?;
 
         if result.is_empty() {
             return Ok(vec![]);

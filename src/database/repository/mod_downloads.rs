@@ -18,7 +18,7 @@ pub async fn create(
     .execute(&mut *conn)
     .await
     .inspect_err(|e| {
-        log::error!("Failed to insert new download for mod_version id {mod_version_id}: {e}");
+        tracing::error!("Failed to insert new download for mod_version id {mod_version_id}: {e}");
     })?;
 
     Ok(result.rows_affected() > 0)
@@ -40,7 +40,7 @@ pub async fn has_downloaded_mod(
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_downloads::has_downloaded_mod query error: {e}"))
+    .inspect_err(|e| tracing::error!("mod_downloads::has_downloaded_mod query error: {e}"))
     .map_err(|e| e.into())
     .map(|x| x.is_some())
 }
@@ -54,7 +54,7 @@ pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_downloads::cleanup query failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("mod_downloads::cleanup query failed: {e}"))?;
 
     Ok(())
 }

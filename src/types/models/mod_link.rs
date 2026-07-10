@@ -28,7 +28,7 @@ impl ModLinks {
         )
         .fetch_optional(pool)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch mod links for mod {}. Error: {}", mod_id, e))
+        .inspect_err(|e| tracing::error!("Failed to fetch mod links for mod {}. Error: {}", mod_id, e))
         .map_err(|e| e.into())
     }
 
@@ -50,7 +50,7 @@ impl ModLinks {
         )
         .fetch_all(pool)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch mod links for multiple mods. Error: {}", e))
+        .inspect_err(|e| tracing::error!("Failed to fetch mod links for multiple mods. Error: {}", e))
         .map_err(|e| e.into())
     }
 }

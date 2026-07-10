@@ -219,7 +219,7 @@ pub async fn poll_github_login(
     let user = client
         .get_user(&token)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch user from GitHub: {e}"))
+        .inspect_err(|e| tracing::error!("Failed to fetch user from GitHub: {e}"))
         .map_err(|_| ApiError::InternalError("Failed to fetch user data from GitHub".into()))?;
 
     let mut tx = pool.begin().await?;

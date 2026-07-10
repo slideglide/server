@@ -83,7 +83,7 @@ pub async fn get_by_version_str(
     )
         .fetch_optional(conn)
         .await
-        .inspect_err(|e| log::error!("Failed to get mod_version by version string: {e}"))
+        .inspect_err(|e| tracing::error!("Failed to get mod_version by version string: {e}"))
         .map_err(|e| e.into())
         .map(|opt| opt.map(|x| x.into_mod_version()))
 }
@@ -112,7 +112,7 @@ pub async fn get_for_mod(
     )
         .fetch_all(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to get mod_versions for mod {mod_id}: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to get mod_versions for mod {mod_id}: {e}"))?;
 
     let version_ids: Vec<i32> = records.iter().map(|x| x.id).collect();
     let mut gd_versions = ModGDVersion::get_for_mod_versions(&version_ids, conn).await?;
@@ -138,7 +138,7 @@ pub async fn increment_downloads(id: i32, conn: &mut PgConnection) -> Result<(),
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to increment downloads for mod_version {id}: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to increment downloads for mod_version {id}: {e}"))?;
 
     Ok(())
 }
@@ -151,7 +151,7 @@ pub async fn create_from_json(
     sqlx::query!("SET CONSTRAINTS mod_versions_status_id_fkey DEFERRED")
         .execute(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to update constraint: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to update constraint: {e}"))?;
 
     let geode = Version::parse(&json.geode).or(Err(DatabaseError::InvalidInput(
         "mod.json geode version is invalid semver".into(),
@@ -192,7 +192,7 @@ pub async fn create_from_json(
     )
     .fetch_one(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to insert mod_version: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to insert mod_version: {e}"))?;
 
     let id = row.id;
 
@@ -209,12 +209,12 @@ pub async fn create_from_json(
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to set status: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to set status: {e}"))?;
 
     sqlx::query!("SET CONSTRAINTS mod_versions_status_id_fkey IMMEDIATE")
         .execute(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to update constraint: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to update constraint: {e}"))?;
 
     Ok(ModVersion {
         id,
@@ -306,7 +306,7 @@ pub async fn update_pending_version(
     .fetch_one(&mut *conn)
     .await
     .inspect_err(|err| {
-        log::error!(
+        tracing::error!(
             "Failed to update pending version {}-{}: {err}",
             json.id,
             json.version
@@ -322,7 +322,7 @@ pub async fn update_pending_version(
         )
         .execute(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to update tag for mod: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to update tag for mod: {e}"))?;
     }
 
     Ok(ModVersion {
@@ -379,7 +379,7 @@ pub async fn update_version_status(
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to update mod_version_status: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to update mod_version_status: {e}"))?;
 
     version.status = status;
 

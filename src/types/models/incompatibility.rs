@@ -106,7 +106,7 @@ impl Incompatibility {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch incompatibilities for mod_version {id}: {e}"))
+        .inspect_err(|e| tracing::error!("Failed to fetch incompatibilities for mod_version {id}: {e}"))
         .map_err(|e| e.into())
     }
 
@@ -162,7 +162,7 @@ impl Incompatibility {
         .bind(geode_pre);
 
         let result = q.fetch_all(&mut *pool).await.inspect_err(|e| {
-            log::error!("Failed to fetch incompatibilities for mod_versions: {e}")
+            tracing::error!("Failed to fetch incompatibilities for mod_versions: {e}")
         })?;
 
         let mut ret: HashMap<i32, Vec<FetchedIncompatibility>> = HashMap::new();

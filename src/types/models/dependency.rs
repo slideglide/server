@@ -191,7 +191,7 @@ impl Dependency {
         .bind(geode_pre)
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|x| log::error!("Failed to fetch dependencies: {x}"))?;
+        .inspect_err(|x| tracing::error!("Failed to fetch dependencies: {x}"))?;
 
         let mut ret: HashMap<i32, Vec<FetchedDependency>> = HashMap::new();
         for i in result {

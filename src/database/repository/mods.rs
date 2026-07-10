@@ -59,7 +59,7 @@ pub async fn get_one(
         )
         .fetch_optional(conn)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch mod {id}: {e}"))
+        .inspect_err(|e| tracing::error!("Failed to fetch mod {id}: {e}"))
         .map_err(|e| e.into())
         .map(|x| x.map(|x| x.into_mod()))
     } else {
@@ -74,7 +74,7 @@ pub async fn get_one(
         )
         .fetch_optional(conn)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch mod {}: {}", id, e))
+        .inspect_err(|e| tracing::error!("Failed to fetch mod {}: {}", id, e))
         .map_err(|e| e.into())
         .map(|x| x.map(|x| x.into_mod()))
     }
@@ -104,7 +104,7 @@ pub async fn create(json: &ModJson, conn: &mut PgConnection) -> Result<Mod, Data
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to created mod {}: {e}", &json.id))
+    .inspect_err(|e| tracing::error!("Failed to created mod {}: {e}", &json.id))
     .map_err(|e| e.into())
     .map(|x| x.into_mod())
 }
@@ -133,7 +133,7 @@ pub async fn assign_developer(
     .execute(conn)
     .await
     .inspect_err(|x| {
-        log::error!("Couldn't assign developer {developer_id} on mod {id} (owner {owner}): {x}")
+        tracing::error!("Couldn't assign developer {developer_id} on mod {id} (owner {owner}): {x}")
     })
     .map(|_| ())
     .map_err(|e| e.into())
@@ -154,7 +154,7 @@ pub async fn unassign_developer(
     .execute(conn)
     .await
     .inspect_err(|x| {
-        log::error!(
+        tracing::error!(
             "Couldn't unassign developer {} from mod {}: {}",
             developer_id,
             id,
@@ -169,7 +169,7 @@ pub async fn is_featured(id: &str, conn: &mut PgConnection) -> Result<bool, Data
     Ok(sqlx::query!("SELECT featured FROM mods WHERE id = $1", id)
         .fetch_optional(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to check if mod {id} is featured: {e}"))?
+        .inspect_err(|e| tracing::error!("Failed to check if mod {id} is featured: {e}"))?
         .map(|row| row.featured)
         .unwrap_or(false))
 }
@@ -178,7 +178,7 @@ pub async fn exists(id: &str, conn: &mut PgConnection) -> Result<bool, DatabaseE
     Ok(sqlx::query!("SELECT id FROM mods WHERE id = $1", id)
         .fetch_optional(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to check if mod {} exists: {}", id, e))?
+        .inspect_err(|e| tracing::error!("Failed to check if mod {} exists: {}", id, e))?
         .is_some())
 }
 
@@ -192,7 +192,7 @@ pub async fn exists_multiple(
     let mods: HashSet<String> = sqlx::query!("SELECT id FROM mods WHERE id = ANY($1)", ids)
         .fetch_all(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("mods::exists_multiple failed: {e}"))?
+        .inspect_err(|e| tracing::error!("mods::exists_multiple failed: {e}"))?
         .into_iter()
         .map(|x| x.id)
         .collect();
@@ -228,7 +228,7 @@ pub async fn get_logo(id: &str, conn: &mut PgConnection) -> Result<Option<Vec<u8
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to fetch mod logo for {id}: {e}"))?
+    .inspect_err(|e| tracing::error!("Failed to fetch mod logo for {id}: {e}"))?
     .and_then(|optional| optional.image);
 
     // Empty vec means no image
@@ -248,7 +248,7 @@ pub async fn increment_downloads(id: &str, conn: &mut PgConnection) -> Result<()
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to increment downloads for mod {id}: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to increment downloads for mod {id}: {e}"))?;
 
     Ok(())
 }
@@ -274,7 +274,7 @@ pub async fn update_with_json(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to update mod: {}", e))?;
+    .inspect_err(|e| tracing::error!("Failed to update mod: {}", e))?;
 
     the_mod.repository = json.repository.clone();
     the_mod.about = json.about.clone();
@@ -304,7 +304,7 @@ pub async fn update_with_json_moved(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to update mod: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to update mod: {e}"))?;
 
     the_mod.repository = json.repository;
     the_mod.about = json.about;
@@ -324,7 +324,7 @@ pub async fn touch_created_at(id: &str, conn: &mut PgConnection) -> Result<(), D
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to touch created_at for mod {id}: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to touch created_at for mod {id}: {e}"))?;
 
     Ok(())
 }

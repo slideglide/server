@@ -20,7 +20,7 @@ pub async fn generate_token(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to insert refresh token: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to insert refresh token: {e}"))?;
 
     Ok(token)
 }
@@ -34,7 +34,7 @@ pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), Da
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to remove refresh token: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to remove refresh token: {e}"))?;
 
     Ok(())
 }
@@ -50,7 +50,7 @@ pub async fn remove_developer_tokens(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to remove refresh tokens: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to remove refresh tokens: {e}"))?;
 
     Ok(())
 }
@@ -62,7 +62,7 @@ pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Refresh token cleanup failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("Refresh token cleanup failed: {e}"))?;
 
     Ok(())
 }

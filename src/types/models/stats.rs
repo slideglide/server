@@ -68,7 +68,7 @@ impl Stats {
         )
         .execute(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("{}", e))?;
+        .inspect_err(|e| tracing::error!("{}", e))?;
         Ok(new.0)
     }
 
@@ -82,7 +82,7 @@ impl Stats {
             .send()
             .await
             .inspect_err(|e| {
-                log::error!("Failed to request Geode release stats from GitHub: {}", e)
+                tracing::error!("Failed to request Geode release stats from GitHub: {}", e)
             })?;
 
         if !resp.status().is_success() {

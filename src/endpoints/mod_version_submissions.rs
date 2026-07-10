@@ -18,7 +18,7 @@ use crate::webhook::discord::DiscordWebhook;
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, delete, get, post, put, web};
 use futures::StreamExt;
-use log::error;
+use tracing::error;
 use serde::Deserialize;
 use sqlx::{Acquire, PgConnection};
 use std::collections::HashMap;
@@ -650,7 +650,7 @@ pub async fn delete_comment(
     for filename in attachment_filenames {
         if !references.contains_key(&filename)
             && let Err(e) = data.public_storage().delete(&filename).await {
-                log::error!("Failed to delete attachment file {filename}: {e}");
+                tracing::error!("Failed to delete attachment file {filename}: {e}");
             }
     }
 
@@ -843,7 +843,7 @@ pub async fn upload_attachments(
                 .collect()
         })
         .await
-        .inspect_err(|e| log::error!("Bad bad bad bad {e}"))
+        .inspect_err(|e| tracing::error!("Bad bad bad bad {e}"))
         .map_err(|_| ApiError::InternalError("Something very bad happened!".into()))??;
 
     let mut result = Vec::with_capacity(processed.len());

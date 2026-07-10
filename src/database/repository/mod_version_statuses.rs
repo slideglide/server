@@ -19,7 +19,7 @@ pub async fn create(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("Failed to create mod_version_status: {e}"))
+    .inspect_err(|e| tracing::error!("Failed to create mod_version_status: {e}"))
     .map(|i| i.id)
     .map_err(|e| e.into())
 }

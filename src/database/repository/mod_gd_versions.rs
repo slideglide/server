@@ -33,7 +33,7 @@ pub async fn create(
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("mod_gd_versions::create query failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("mod_gd_versions::create query failed: {e}"))?;
 
     Ok(json.gd.clone())
 }
@@ -46,7 +46,7 @@ pub async fn clear(mod_version_id: i32, conn: &mut PgConnection) -> Result<(), D
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("incompatibilities::clear query failed: {e}"))
+    .inspect_err(|e| tracing::error!("incompatibilities::clear query failed: {e}"))
     .map_err(|e| e.into())
     .map(|_| ())
 }

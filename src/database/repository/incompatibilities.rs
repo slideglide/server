@@ -64,7 +64,7 @@ pub async fn create(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| log::error!("incompatibilities::create query failed: {e}"))
+    .inspect_err(|e| tracing::error!("incompatibilities::create query failed: {e}"))
     .map_err(|e| e.into())
 }
 
@@ -76,7 +76,7 @@ pub async fn clear(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("incompatibilities::clear query failed: {e}"))
+    .inspect_err(|e| tracing::error!("incompatibilities::clear query failed: {e}"))
     .map_err(|e| e.into())
     .map(|_| ())
 }

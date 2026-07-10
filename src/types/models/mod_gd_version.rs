@@ -247,7 +247,7 @@ impl ModGDVersion {
         .fetch_all(&mut *pool)
         .await
         .inspect_err(|e| {
-            log::error!("Failed to fetch mod_gd_versions for mod_version {id}: {e}")
+            tracing::error!("Failed to fetch mod_gd_versions for mod_version {id}: {e}")
         })?;
         let mut ret = DetailedGDVersion {
             win: None,
@@ -300,7 +300,7 @@ impl ModGDVersion {
         )
         .fetch_all(&mut *pool)
         .await
-        .inspect_err(|e| log::error!("Failed to fetch mod_gd_versions: {}", e))?;
+        .inspect_err(|e| tracing::error!("Failed to fetch mod_gd_versions: {}", e))?;
 
         let mut ret: HashMap<i32, DetailedGDVersion> = HashMap::new();
         for i in result {

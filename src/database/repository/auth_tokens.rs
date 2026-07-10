@@ -29,7 +29,7 @@ pub async fn generate_token(
     .execute(&mut *conn)
     .await
     .inspect_err(|e| {
-        log::error!("Failed to insert auth_token for developer {developer_id}: {e}")
+        tracing::error!("Failed to insert auth_token for developer {developer_id}: {e}")
     })?;
 
     Ok(token)
@@ -45,7 +45,7 @@ pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), Da
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to remove auth token: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to remove auth token: {e}"))?;
 
     Ok(())
 }
@@ -61,7 +61,7 @@ pub async fn remove_developer_tokens(
     )
     .execute(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("Failed to wipe developer tokens: {e}"))?;
+    .inspect_err(|e| tracing::error!("Failed to wipe developer tokens: {e}"))?;
 
     Ok(())
 }
@@ -73,7 +73,7 @@ pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     )
     .execute(conn)
     .await
-    .inspect_err(|e| log::error!("Auth token cleanup failed: {e}"))?;
+    .inspect_err(|e| tracing::error!("Auth token cleanup failed: {e}"))?;
 
     Ok(())
 }

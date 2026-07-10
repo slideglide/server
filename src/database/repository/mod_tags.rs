@@ -15,7 +15,7 @@ pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, Datab
     )
     .fetch_all(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_tags::get_all_writeable failed: {e}"))?
+    .inspect_err(|e| tracing::error!("mod_tags::get_all_writeable failed: {e}"))?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -47,7 +47,7 @@ pub async fn get_allowed_for_mod(
     )
     .fetch_all(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_tags::get_allowed_for_mod failed: {e}"))?
+    .inspect_err(|e| tracing::error!("mod_tags::get_allowed_for_mod failed: {e}"))?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -73,7 +73,7 @@ pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError>
     )
     .fetch_all(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_tags::get_all failed: {e}"))?
+    .inspect_err(|e| tracing::error!("mod_tags::get_all failed: {e}"))?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -100,7 +100,7 @@ pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, 
     )
     .fetch_all(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_tags::get_tags failed: {e}"))
+    .inspect_err(|e| tracing::error!("mod_tags::get_tags failed: {e}"))
     .map_err(|e| e.into())
     .map(|vec| {
         vec.into_iter()
@@ -145,7 +145,7 @@ pub async fn update_for_mod(
         )
         .execute(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to remove tags: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to remove tags: {e}"))?;
     }
 
     if !insertable.is_empty() {
@@ -163,7 +163,7 @@ pub async fn update_for_mod(
         )
         .execute(&mut *conn)
         .await
-        .inspect_err(|e| log::error!("Failed to insert tags: {e}"))?;
+        .inspect_err(|e| tracing::error!("Failed to insert tags: {e}"))?;
     }
 
     Ok(())

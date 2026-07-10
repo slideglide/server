@@ -82,6 +82,7 @@ struct DeveloperIndexQuery {
     )
 )]
 #[get("v1/developers")]
+#[tracing::instrument(skip_all, err)]
 pub async fn developer_index(
     data: web::Data<AppData>,
     query: web::Query<DeveloperIndexQuery>,
@@ -118,6 +119,7 @@ pub async fn developer_index(
     )
 )]
 #[post("v1/mods/{id}/developers")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, username = %json.username))]
 pub async fn add_developer_to_mod(
     data: web::Data<AppData>,
     path: web::Path<AddDevPath>,
@@ -164,6 +166,7 @@ pub async fn add_developer_to_mod(
     )
 )]
 #[delete("v1/mods/{id}/developers/{username}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, username = %path.username))]
 pub async fn remove_dev_from_mod(
     data: web::Data<AppData>,
     path: web::Path<RemoveDevPath>,
@@ -220,6 +223,7 @@ pub async fn remove_dev_from_mod(
     )
 )]
 #[delete("v1/me/token")]
+#[tracing::instrument(skip_all, err)]
 pub async fn delete_token(
     data: web::Data<AppData>,
     auth: Auth,
@@ -246,6 +250,7 @@ pub async fn delete_token(
     )
 )]
 #[delete("v1/me/tokens")]
+#[tracing::instrument(skip_all, err)]
 pub async fn delete_tokens(
     data: web::Data<AppData>,
     auth: Auth,
@@ -280,6 +285,7 @@ struct UploadProfilePayload {
     )
 )]
 #[put("v1/me")]
+#[tracing::instrument(skip_all, err)]
 pub async fn update_profile(
     data: web::Data<AppData>,
     json: web::Json<UploadProfilePayload>,
@@ -337,6 +343,7 @@ pub fn default_own_mods_status() -> ModVersionStatusEnum {
     )
 )]
 #[get("v1/me/mods")]
+#[tracing::instrument(skip_all, err)]
 pub async fn get_own_mods(
     data: web::Data<AppData>,
     query: web::Query<GetOwnModsQuery>,
@@ -366,6 +373,7 @@ pub async fn get_own_mods(
     )
 )]
 #[get("v1/me")]
+#[tracing::instrument(skip_all, err)]
 pub async fn get_me(auth: Auth, data: web::Data<AppData>) -> Result<impl Responder, ApiError> {
     let mut pool = data.db().acquire().await?;
     let dev = auth.developer()?;
@@ -395,6 +403,7 @@ struct GetDeveloperPath {
     )
 )]
 #[get("v1/developers/{id}")]
+#[tracing::instrument(skip_all, err, fields(developer_id = %path.id))]
 pub async fn get_developer(
     data: web::Data<AppData>,
     path: web::Path<GetDeveloperPath>,
@@ -429,6 +438,7 @@ pub async fn get_developer(
     )
 )]
 #[put("v1/developers/{id}")]
+#[tracing::instrument(skip_all, err, fields(developer_id = %path.id))]
 pub async fn update_developer(
     auth: Auth,
     data: web::Data<AppData>,

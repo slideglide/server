@@ -10,6 +10,7 @@ use actix_web::route;
     )
 )]
 #[route("/", method = "GET", method = "HEAD")]
+#[tracing::instrument(skip_all)]
 pub async fn health() -> &'static str {
     r#"
  _____                                                                        _____

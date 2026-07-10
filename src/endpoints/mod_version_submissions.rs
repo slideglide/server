@@ -105,6 +105,7 @@ async fn check_submission_lock(
     security(("bearer_token" = []))
 )]
 #[get("v1/mods/{id}/versions/{version}/submission")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn get_submission(
     path: web::Path<SubmissionPath>,
     data: web::Data<AppData>
@@ -158,6 +159,7 @@ pub async fn get_submission(
     security(("bearer_token" = []))
 )]
 #[get("v1/mods/{id}/versions/{version}/submission/audit")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn get_submission_audit(
     path: web::Path<SubmissionPath>,
     data: web::Data<AppData>,
@@ -202,6 +204,7 @@ pub async fn get_submission_audit(
     security(("bearer_token" = []))
 )]
 #[put("v1/mods/{id}/versions/{version}/submission")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn update_submission(
     path: web::Path<SubmissionPath>,
     data: web::Data<AppData>,
@@ -260,6 +263,7 @@ pub async fn update_submission(
     security(("bearer_token" = []))
 )]
 #[get("v1/mods/{id}/versions/{version}/submission/comments")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn get_comments(
     path: web::Path<SubmissionPath>,
     data: web::Data<AppData>,
@@ -354,6 +358,7 @@ pub async fn get_comments(
     security(("bearer_token" = []))
 )]
 #[get("v1/mods/{id}/versions/{version}/submission/comments/{comment_id}/audit")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id))]
 pub async fn get_comment_audit(
     path: web::Path<CommentPath>,
     data: web::Data<AppData>,
@@ -405,6 +410,7 @@ pub async fn get_comment_audit(
     security(("bearer_token" = []))
 )]
 #[post("v1/mods/{id}/versions/{version}/submission/comments")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn create_comment(
     path: web::Path<SubmissionPath>,
     data: web::Data<AppData>,
@@ -487,6 +493,7 @@ pub async fn create_comment(
     security(("bearer_token" = []))
 )]
 #[put("v1/mods/{id}/versions/{version}/submission/comments/{comment_id}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id))]
 pub async fn update_comment(
     path: web::Path<CommentPath>,
     data: web::Data<AppData>,
@@ -586,6 +593,7 @@ pub async fn update_comment(
     security(("bearer_token" = []))
 )]
 #[delete("v1/mods/{id}/versions/{version}/submission/comments/{comment_id}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id))]
 pub async fn delete_comment(
     path: web::Path<CommentPath>,
     data: web::Data<AppData>,
@@ -671,6 +679,7 @@ pub async fn delete_comment(
     security(("bearer_token" = []))
 )]
 #[get("v1/mods/{id}/versions/{version}/submission/comments/{comment_id}/attachments")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id))]
 pub async fn get_attachments(
     path: web::Path<CommentPath>,
     data: web::Data<AppData>
@@ -741,6 +750,7 @@ pub struct UploadAttachmentsForm {
     security(("bearer_token" = []))
 )]
 #[post("v1/mods/{id}/versions/{version}/submission/comments/{comment_id}/attachments")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id))]
 pub async fn upload_attachments(
     path: web::Path<CommentPath>,
     data: web::Data<AppData>,
@@ -910,6 +920,7 @@ pub async fn upload_attachments(
 #[delete(
     "v1/mods/{id}/versions/{version}/submission/comments/{comment_id}/attachments/{attachment_id}"
 )]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id, attachment_id = %path.attachment_id))]
 pub async fn delete_attachment(
     path: web::Path<AttachmentPath>,
     data: web::Data<AppData>,

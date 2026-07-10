@@ -89,6 +89,7 @@ struct IndexQuery {
     )
 )]
 #[get("v1/mods/{id}/versions")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id))]
 pub async fn get_version_index(
     path: web::Path<IndexPath>,
     data: web::Data<AppData>,
@@ -149,6 +150,7 @@ pub async fn get_version_index(
     )
 )]
 #[get("v1/mods/{id}/versions/{version}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn get_one(
     path: web::Path<GetOnePath>,
     data: web::Data<AppData>,
@@ -211,6 +213,7 @@ struct DownloadQuery {
     )
 )]
 #[get("v1/mods/{id}/versions/{version}/download")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn download_version(
     path: web::Path<GetOnePath>,
     data: web::Data<AppData>,
@@ -292,6 +295,7 @@ pub async fn download_version(
     )
 )]
 #[post("v1/mods/{id}/versions")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path))]
 pub async fn create_version(
     path: web::Path<String>,
     data: web::Data<AppData>,
@@ -497,6 +501,7 @@ pub async fn create_version(
     )
 )]
 #[put("v1/mods/{id}/versions/{version}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path.id, version = %path.version))]
 pub async fn update_version(
     path: web::Path<UpdateVersionPath>,
     data: web::Data<AppData>,

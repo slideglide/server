@@ -80,6 +80,7 @@ pub struct CreateQueryParams {
     )
 )]
 #[get("/v1/mods")]
+#[tracing::instrument(skip_all, err)]
 pub async fn index(
     data: web::Data<AppData>,
     query: web::Query<IndexQueryParams>,
@@ -127,6 +128,7 @@ pub async fn index(
     )
 )]
 #[get("/v1/mods/{id}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %id))]
 pub async fn get(
     data: web::Data<AppData>,
     id: web::Path<String>,
@@ -201,6 +203,7 @@ pub async fn get(
     )
 )]
 #[post("/v1/mods")]
+#[tracing::instrument(skip_all, err)]
 pub async fn create(
     data: web::Data<AppData>,
     payload: web::Json<CreateQueryParams>,
@@ -334,6 +337,7 @@ enum UpdateQueryResponse {
     )
 )]
 #[get("/v1/mods/updates")]
+#[tracing::instrument(skip_all, err, fields(ids = %query.ids, geode = %query.geode))]
 pub async fn get_mod_updates(
     data: web::Data<AppData>,
     query: web::Query<UpdateQueryParams>,
@@ -394,6 +398,7 @@ pub async fn get_mod_updates(
     )
 )]
 #[get("/v1/mods/{id}/logo")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path))]
 pub async fn get_logo(
     data: web::Data<AppData>,
     path: web::Path<String>,
@@ -433,6 +438,7 @@ struct UpdateModPayload {
     )
 )]
 #[put("/v1/mods/{id}")]
+#[tracing::instrument(skip_all, err, fields(mod_id = %path))]
 pub async fn update_mod(
     data: web::Data<AppData>,
     path: web::Path<String>,

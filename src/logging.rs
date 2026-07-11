@@ -10,10 +10,10 @@ use tracing_subscriber::EnvFilter;
 /// exactly `"json"`, logs are emitted as JSON; otherwise the default
 /// compact/full text format is used.
 pub fn init() {
-    let filter = EnvFilter::try_from_default_env()
+    let filter = EnvFilter::try_from(dotenvy::var("RUST_LOG").unwrap_or("".into()))
         .unwrap_or_else(|_| EnvFilter::new("info,sqlx=warn,tracing_actix_web=info"));
 
-    let is_json = std::env::var("LOG_FORMAT").map(|v| v == "json").unwrap_or(false);
+    let is_json = dotenvy::var("LOG_FORMAT").map(|v| v == "json").unwrap_or(false);
 
     if is_json {
         tracing_subscriber::fmt()

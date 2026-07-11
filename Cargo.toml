@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 image = { version = "0.25", features = ["png", "jpeg", "webp"] }
-actix-multipart = "0.7"
+actix-multipart = "0.8"
 actix-web = "4.10"
 anyhow = "1.0"
 dotenvy = "0.15"
@@ -22,9 +22,9 @@ sqlx = { version = "0.8", features = [
 tokio = { version = "1.44", features = ["rt", "macros", "rt-multi-thread"] }
 reqwest = { version = "0.13", default-features = false, features = ["json", "gzip", "rustls", "query"] }
 uuid = { version = "1.8", features = ["v4", "fast-rng", "macro-diagnostics"] }
-zip = { version = "7.2.0" }
+zip = "8.6.0"
 # Required for zip crate to compile properly
-lzma-rust2 = "0.15.7"
+lzma-rust2 = "0.16.5"
 sha256 = "1.5"
 semver = "1.0"
 clap = { version = "4.5", features = ["derive"] }

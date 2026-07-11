@@ -1,6 +1,8 @@
 use std::time::Duration;
 
 use moka::future::Cache;
+use sqlx::ConnectOptions;
+use sqlx::postgres::PgConnectOptions;
 
 use crate::storage::{PrivateStorage, PublicStorage, StaticStorage};
 use crate::{
@@ -44,6 +46,7 @@ pub async fn build_config() -> anyhow::Result<AppData> {
 
     let pool = sqlx::postgres::PgPoolOptions::default()
         .max_connections(pg_connections)
+        .acquire_timeout(Duration::from_secs(10))
         .connect(&env_url)
         .await?;
     let port = dotenvy::var("PORT").map_or(8080, |x: String| x.parse::<u16>().unwrap());

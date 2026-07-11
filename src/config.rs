@@ -1,8 +1,6 @@
 use std::time::Duration;
 
 use moka::future::Cache;
-use sqlx::ConnectOptions;
-use sqlx::postgres::PgConnectOptions;
 
 use crate::storage::{PrivateStorage, PublicStorage, StaticStorage};
 use crate::{

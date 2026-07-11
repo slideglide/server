@@ -88,9 +88,11 @@ RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/geode-index ./geode-index
 COPY migrations ./migrations
-COPY storage/static ./storage/static
+COPY static ./static
+COPY docker/sync-static.sh /usr/local/bin/sync-static.sh
 
 RUN addgroup -S -g 1000 geode && adduser -S -u 1000 geode -G geode \
+    && chmod +x /usr/local/bin/sync-static.sh \
     && chown -R geode:geode /app
 USER geode
 
@@ -109,9 +111,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY --from=builder /app/geode-index ./geode-index
 COPY migrations ./migrations
-COPY storage/static ./storage/static
+COPY static ./static
+COPY docker/sync-static.sh /usr/local/bin/sync-static.sh
 
 RUN groupadd --system --gid 1000 geode && useradd --system --uid 1000 --gid geode geode \
+    && chmod +x /usr/local/bin/sync-static.sh \
     && chown -R geode:geode /app
 USER geode
 

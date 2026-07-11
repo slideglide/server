@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
 
         #[cfg(feature = "dev-tools")]
         let app = app
-            .service(actix_files::Files::new("/static", "storage/static"))
+            .service(actix_files::Files::new("/static", "static"))
             .service(actix_files::Files::new("/storage", "storage/public"));
 
         app

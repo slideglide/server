@@ -4,6 +4,15 @@
 # "Running with Docker" section of the README for environment variables.
 
 services:
+  # Re-syncs static assets from whichever image tag is currently pulled into
+  # the geode-static volume, so nginx always serves assets matching the
+  # deployed (or rolled-back) app version. Runs once per `docker compose up`.
+  static-init:
+    image: ghcr.io/geode-sdk/server:latest-alpine
+    entrypoint: ["/usr/local/bin/sync-static.sh", "/shared-static"]
+    volumes:
+      - geode-static:/shared-static
+
   app:
     image: ghcr.io/geode-sdk/server:latest-alpine
     restart: unless-stopped
@@ -13,7 +22,8 @@ services:
       APP_URL: https://api.sapphire-sdk.org
       FRONT_URL: https://sapphire-sdk.org
     volumes:
-      - geode-storage:/app/storage
+      - geode-storage-public:/app/storage/public
+      - geode-storage-private:/app/storage/private
     networks:
       - geode
 
@@ -21,9 +31,13 @@ services:
     image: nginx:1.27-alpine
     restart: unless-stopped
     depends_on:
-      - app
+      app:
+        condition: service_started
+      static-init:
+        condition: service_completed_successfully
     volumes:
-      - geode-storage:/app/storage:ro
+      - geode-static:/app/static:ro
+      - geode-storage-public:/app/storage/public:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     # include only if you want to make this available on the host machine
     # (if your reverse proxy is on the host, not inside docker)
@@ -33,7 +47,9 @@ services:
       - geode
 
 volumes:
-  geode-storage:
+  geode-static:
+  geode-storage-public:
+  geode-storage-private:
 
 networks:
   geode:

@@ -55,10 +55,12 @@ The image has a built-in `HEALTHCHECK` that polls `GET /` (expects `200`); the s
 
 ### Persisting uploaded files
 
-The server writes uploaded files to `/app/storage` inside the container (static assets, public downloads, private files). This is **not** persisted by default, if you remove/recreate the container without a volume, uploads are lost.
+The server writes uploaded files to `/app/storage` inside the container (public downloads, private files). This is **not** persisted by default, if you remove/recreate the container without a volume, uploads are lost.
+
+Static assets (`/app/static`) are baked into the image itself and don't need persisting, they are re-synced to whatever serves them whenever the image updates, see the Compose example below.
 
 > [!IMPORTANT]
-> The index does not serve these files itself in production. You are responsible for serving them with your own reverse proxy: `/app/storage/static` must be served at `/static/`, and `/app/storage/public` at `/storage/`, both relative to `APP_URL`.
+> The index does not serve these files itself in production. You are responsible for serving them with your own reverse proxy: `/app/static` must be served at `/static/`, and `/app/storage/public` at `/storage/`, both relative to `APP_URL`.
 
 The container runs as a fixed non-root user, UID `1000`, GID `1000`.
 

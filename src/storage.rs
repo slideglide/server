@@ -9,7 +9,7 @@ pub struct StaticStorage {
 impl StaticStorage {
     pub fn new(app_url: String) -> Self {
         Self {
-            base_path: PathBuf::from("storage/static"),
+            base_path: PathBuf::from("static"),
             app_url
         }
     }

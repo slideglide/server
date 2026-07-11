@@ -10,6 +10,7 @@ services:
   static-init:
     image: ghcr.io/geode-sdk/server:latest-alpine
     entrypoint: ["/usr/local/bin/sync-static.sh", "/shared-static"]
+    user: "0:0"
     volumes:
       - geode-static:/shared-static
 

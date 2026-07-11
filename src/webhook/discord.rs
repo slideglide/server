@@ -67,11 +67,11 @@ impl DiscordMessage {
 
     pub fn send(&self, url: &str) {
         if url.is_empty() {
-            log::error!("Not sending webhook since URL is empty");
+            tracing::error!("Not sending webhook since URL is empty");
             return;
         }
 
-        log::debug!("Sending {:?} to webhook url {}", self, url);
+        tracing::debug!("Sending {:?} to webhook url {}", self, url);
         let url = String::from(url);
         let copy = self.clone();
 
@@ -83,7 +83,7 @@ impl DiscordMessage {
                 .send()
                 .await
             {
-                log::error!("Failed to broadcast Discord webhook {}: {}", url, e);
+                tracing::error!("Failed to broadcast Discord webhook {}: {}", url, e);
             }
         });
     }

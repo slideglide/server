@@ -3,6 +3,7 @@ use chrono::{Days, Utc};
 use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgConnection;
 
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(
     ip: IpNetwork,
     mod_version_id: i32,
@@ -16,14 +17,12 @@ pub async fn create(
         ip
     )
     .execute(&mut *conn)
-    .await
-    .inspect_err(|e| {
-        log::error!("Failed to insert new download for mod_version id {mod_version_id}: {e}");
-    })?;
+    .await?;
 
     Ok(result.rows_affected() > 0)
 }
 
+#[tracing::instrument(skip_all, fields(mod_id = %mod_id))]
 pub async fn has_downloaded_mod(
     ip: IpNetwork,
     mod_id: &str,
@@ -40,11 +39,11 @@ pub async fn has_downloaded_mod(
     )
     .fetch_optional(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_downloads::has_downloaded_mod query error: {e}"))
     .map_err(|e| e.into())
     .map(|x| x.is_some())
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
     let date = Utc::now().checked_sub_days(Days::new(30)).unwrap();
     sqlx::query!(
@@ -53,8 +52,7 @@ pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
         date
     )
     .execute(&mut *conn)
-    .await
-    .inspect_err(|e| log::error!("mod_downloads::cleanup query failed: {e}"))?;
+    .await?;
 
     Ok(())
 }

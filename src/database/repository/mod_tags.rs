@@ -3,6 +3,7 @@ use crate::database::DatabaseError;
 use crate::types::models::tag::Tag;
 use sqlx::PgConnection;
 
+#[tracing::instrument(skip_all)]
 pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {
     let tags = sqlx::query!(
         "SELECT
@@ -14,8 +15,7 @@ pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, Datab
         where is_readonly = false"
     )
     .fetch_all(&mut *conn)
-    .await
-    .inspect_err(|e| log::error!("mod_tags::get_all_writeable failed: {e}"))?
+    .await?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -28,6 +28,7 @@ pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, Datab
     Ok(tags)
 }
 
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn get_allowed_for_mod(
     id: &str,
     conn: &mut PgConnection,
@@ -46,8 +47,7 @@ pub async fn get_allowed_for_mod(
         id
     )
     .fetch_all(&mut *conn)
-    .await
-    .inspect_err(|e| log::error!("mod_tags::get_allowed_for_mod failed: {e}"))?
+    .await?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -62,6 +62,7 @@ pub async fn get_allowed_for_mod(
     return Ok(writable);
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {
     let tags = sqlx::query!(
         "SELECT
@@ -72,8 +73,7 @@ pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError>
         FROM mod_tags"
     )
     .fetch_all(&mut *conn)
-    .await
-    .inspect_err(|e| log::error!("mod_tags::get_all failed: {e}"))?
+    .await?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -86,6 +86,7 @@ pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError>
     Ok(tags)
 }
 
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {
     sqlx::query!(
         "SELECT
@@ -100,7 +101,6 @@ pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, 
     )
     .fetch_all(&mut *conn)
     .await
-    .inspect_err(|e| log::error!("mod_tags::get_tags failed: {e}"))
     .map_err(|e| e.into())
     .map(|vec| {
         vec.into_iter()
@@ -114,6 +114,7 @@ pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, 
     })
 }
 
+#[tracing::instrument(skip_all, fields(mod_id = %id))]
 pub async fn update_for_mod(
     id: &str,
     tags: &[Tag],
@@ -144,8 +145,7 @@ pub async fn update_for_mod(
             &deletable
         )
         .execute(&mut *conn)
-        .await
-        .inspect_err(|e| log::error!("Failed to remove tags: {e}"))?;
+        .await?;
     }
 
     if !insertable.is_empty() {
@@ -162,8 +162,7 @@ pub async fn update_for_mod(
             &insertable
         )
         .execute(&mut *conn)
-        .await
-        .inspect_err(|e| log::error!("Failed to insert tags: {e}"))?;
+        .await?;
     }
 
     Ok(())

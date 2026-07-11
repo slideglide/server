@@ -7,6 +7,7 @@ use crate::types::models::mod_version_submission::{
 use sqlx::{Error, PgConnection};
 use std::collections::HashMap;
 
+#[tracing::instrument(skip_all, fields(mod_version_id = %id))]
 pub async fn get_for_mod_version(
     id: i32,
     conn: &mut PgConnection,
@@ -22,10 +23,10 @@ pub async fn get_for_mod_version(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_for_mod_versions failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(submission_id = %id))]
 pub async fn get_audit_for_submission(
     id: i32,
     conn: &mut PgConnection,
@@ -40,10 +41,10 @@ pub async fn get_audit_for_submission(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_audit_for_submission failed: {e}",))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(
     mod_version_id: i32,
     conn: &mut PgConnection,
@@ -56,13 +57,13 @@ pub async fn create(
         mod_version_id
     )
     .fetch_one(&mut *conn)
-    .await
-    .inspect_err(|e| log::error!("mod_version_submissions::create failed: {e}"))?;
+    .await?;
 
     insert_submission_audit(mod_version_id, AuditAction::Created, None, None, conn).await?;
     Ok(row)
 }
 
+#[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id, lock = ?lock))]
 pub async fn set_locked(
     mod_version_id: i32,
     lock: ModVersionSubmissionLock,
@@ -102,10 +103,10 @@ pub async fn set_locked(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::set_locked failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(submission_id = %id))]
 pub async fn get_paginated_comments_for_submission(
     id: i32,
     page: i64,
@@ -127,12 +128,10 @@ pub async fn get_paginated_comments_for_submission(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::get_paginated_items_for_submission failed: {e}")
-    })
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(submission_id = %id))]
 pub async fn count_comments_for_submission(
     id: i32,
     conn: &mut PgConnection,
@@ -143,13 +142,11 @@ pub async fn count_comments_for_submission(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_comments_for_submission failed: {e}")
-    })
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(submission_id = %submission_id, author_id = %author_id))]
 pub async fn create_comment(
     submission_id: i32,
     author_id: i32,
@@ -167,10 +164,10 @@ pub async fn create_comment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::create_comment failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn get_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -184,10 +181,10 @@ pub async fn get_comment(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_comment failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn update_comment(
     comment_id: i64,
     new_text: &str,
@@ -204,10 +201,10 @@ pub async fn update_comment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::update_comment failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn delete_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -217,11 +214,11 @@ pub async fn delete_comment(
         comment_id
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| log::error!("mod_version_submissions::delete_comment failed: {e}"))?;
+    .await?;
     Ok(result.rows_affected() > 0)
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %id))]
 pub async fn get_audit_for_comment(
     id: i64,
     conn: &mut PgConnection,
@@ -236,10 +233,10 @@ pub async fn get_audit_for_comment(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_audit_for_comment failed: {e}",))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn count_attachments_for_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -250,13 +247,11 @@ pub async fn count_attachments_for_comment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_attachments_for_comment failed: {e}")
-    })
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id, filename = %filename))]
 pub async fn create_attachment(
     comment_id: i64,
     filename: &str,
@@ -272,10 +267,10 @@ pub async fn create_attachment(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::create_attachment failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %comment_id))]
 pub async fn get_attachments_for_comment(
     comment_id: i64,
     conn: &mut PgConnection,
@@ -290,12 +285,10 @@ pub async fn get_attachments_for_comment(
     )
     .fetch_all(conn)
     .await
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::get_attachments_for_comment failed: {e}")
-    })
     .map_err(|e: Error| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_ids = ?comment_ids))]
 pub async fn get_attachments_for_comments(
     comment_ids: &[i64],
     conn: &mut PgConnection,
@@ -309,10 +302,7 @@ pub async fn get_attachments_for_comments(
         comment_ids
     )
     .fetch_all(conn)
-    .await
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::get_attachments_for_comments failed: {e}")
-    })?;
+    .await?;
 
     let mut ret: HashMap<i64, Vec<ModVersionSubmissionAttachmentRow>> = HashMap::with_capacity(comment_ids.len());
 
@@ -323,6 +313,7 @@ pub async fn get_attachments_for_comments(
     Ok(ret)
 }
 
+#[tracing::instrument(skip_all, fields(attachment_id = %attachment_id))]
 pub async fn get_attachment(
     attachment_id: i64,
     conn: &mut PgConnection,
@@ -336,10 +327,10 @@ pub async fn get_attachment(
     )
     .fetch_optional(conn)
     .await
-    .inspect_err(|e| log::error!("mod_version_submissions::get_attachment failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(attachment_id = %attachment_id))]
 pub async fn delete_attachment(
     attachment_id: i64,
     conn: &mut PgConnection,
@@ -349,11 +340,11 @@ pub async fn delete_attachment(
         attachment_id
     )
     .execute(conn)
-    .await
-    .inspect_err(|e| log::error!("mod_version_submissions::delete_attachment failed: {e}"))?;
+    .await?;
     Ok(result.rows_affected() > 0)
 }
 
+#[tracing::instrument(skip_all, fields(filename = %filename))]
 pub async fn count_references_to_filename(
     filename: &str,
     conn: &mut PgConnection,
@@ -364,13 +355,11 @@ pub async fn count_references_to_filename(
     )
     .fetch_one(conn)
     .await
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_references_to_filename failed: {e}")
-    })
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(filenames = ?filenames))]
 pub async fn count_references_to_filenames(
     filenames: &[String],
     conn: &mut PgConnection,
@@ -390,12 +379,10 @@ pub async fn count_references_to_filenames(
             .map(|record| (record.filename, record.count.unwrap_or(0)))
             .collect()
     })
-    .inspect_err(|e| {
-        log::error!("mod_version_submissions::count_references_to_filenames failed: {e}")
-    })
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(submission_id = %id, action = ?action))]
 pub async fn insert_submission_audit(
     id: i32,
     action: AuditAction,
@@ -414,10 +401,10 @@ pub async fn insert_submission_audit(
     .execute(conn)
     .await
     .map(|_| ())
-    .inspect_err(|e| log::error!("mod_version_submissions::insert_submission_audit failed: {e}"))
     .map_err(|e| e.into())
 }
 
+#[tracing::instrument(skip_all, fields(comment_id = %id, action = ?action))]
 pub async fn insert_comment_audit(
     id: i64,
     action: AuditAction,
@@ -436,6 +423,5 @@ pub async fn insert_comment_audit(
         .execute(conn)
         .await
         .map(|_| ())
-        .inspect_err(|e| log::error!("mod_version_submissions::insert_comment_audit failed: {e}"))
         .map_err(|e| e.into())
 }

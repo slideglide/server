@@ -77,6 +77,7 @@ impl LoaderVersionGetOne {
 }
 
 impl LoaderVersion {
+    #[tracing::instrument(skip_all, fields(gd = ?gd, platform = ?platform, accept_prereleases = %accept_prereleases))]
     pub async fn get_latest(
         gd: Option<GDVersionEnum>,
         platform: Option<VerPlatform>,
@@ -168,6 +169,7 @@ impl LoaderVersion {
             .map(|x| x.map(|y| y.into_loader_version()))
     }
 
+    #[tracing::instrument(skip_all, fields(tag = %tag))]
     pub async fn get_one(
         tag: &str,
         pool: &mut PgConnection,
@@ -187,6 +189,7 @@ impl LoaderVersion {
         .map(|x| x.map(|y| y.into_loader_version()))
     }
 
+    #[tracing::instrument(skip_all, fields(tag = %version.tag))]
     pub async fn create_version(
         version: LoaderVersionCreate,
         pool: &mut PgConnection,
@@ -210,6 +213,7 @@ impl LoaderVersion {
         .map_err(|e| e.into())
     }
 
+    #[tracing::instrument(skip_all, fields(page = %page, per_page = %per_page))]
     pub async fn get_many(
         query: GetVersionsQuery,
         per_page: i64,

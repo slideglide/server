@@ -34,6 +34,7 @@ struct RefreshBody {
     )
 )]
 #[post("v1/login/refresh")]
+#[tracing::instrument(skip_all)]
 pub async fn refresh_token(
     json: web::Json<RefreshBody>,
     data: web::Data<AppData>,

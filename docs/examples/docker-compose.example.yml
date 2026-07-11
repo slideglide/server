@@ -1,4 +1,4 @@
-# Example production setup: app + nginx sharing a storage volume.
+# Example production setup: app + nginx + postgres sharing a storage volume.
 #
 # See nginx.example.conf for the corresponding nginx config, and the
 # "Running with Docker" section of the README for environment variables.
@@ -16,8 +16,11 @@ services:
   app:
     image: ghcr.io/geode-sdk/server:latest-alpine
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://user:password@host/schema
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
       PORT: "3000"
       APP_URL: https://api.sapphire-sdk.org
       FRONT_URL: https://sapphire-sdk.org
@@ -46,7 +49,27 @@ services:
     networks:
       - geode
 
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    # you should probably not keep those variables inside this
+    # compose file, maybe define a .env file for it
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - geode-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - geode
+
 volumes:
+  geode-postgres:
   geode-static:
   geode-storage-public:
   geode-storage-private:

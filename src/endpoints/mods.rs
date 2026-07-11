@@ -464,10 +464,9 @@ pub async fn update_mod(
 
     if featured != payload.featured {
         let item = Mod::get_one(&id, true, &mut pool).await?;
-        if let Some(item) = item {
-            if let Some(owner) = developers::get_owner_for_mod(&id, &mut pool).await? {
-                let first_ver = item.versions.first();
-                if let Some(ver) = first_ver {
+        if let Some(item) = item
+            && let Some(owner) = developers::get_owner_for_mod(&id, &mut pool).await?
+                && let Some(ver) = item.versions.first() {
                     ModFeaturedEvent {
                         id: item.id,
                         name: ver.name.clone(),
@@ -479,8 +478,6 @@ pub async fn update_mod(
                     .to_discord_webhook()
                     .send(data.webhook_url());
                 }
-            }
-        }
     }
 
     Ok(HttpResponse::NoContent())

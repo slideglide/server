@@ -1,8 +1,8 @@
 use crate::database::DatabaseError;
 use crate::types::models::github_login_attempt::StoredLoginAttempt;
 use chrono::Utc;
-use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgConnection;
+use sqlx::types::ipnetwork::IpNetwork;
 use uuid::Uuid;
 
 #[tracing::instrument(skip_all)]

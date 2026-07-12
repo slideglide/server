@@ -3,11 +3,11 @@ use crate::database::repository::{auth_tokens, developers, refresh_tokens};
 use crate::endpoints::ApiError;
 use crate::extractors::auth::Auth;
 use crate::types::api::ApiResponse;
-use actix_web::{post, web, Responder};
+use actix_web::{Responder, post, web};
 use serde::{Deserialize, Serialize};
 use sqlx::Acquire;
-use uuid::Uuid;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 pub mod github;
 

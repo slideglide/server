@@ -1,8 +1,8 @@
+use crate::types::serde::chrono_dt_secs;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use utoipa::ToSchema;
-use crate::types::serde::chrono_dt_secs;
 
 #[derive(sqlx::Type, Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq, Hash, ToSchema)]
 #[sqlx(type_name = "audit_action", rename_all = "lowercase")]

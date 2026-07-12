@@ -1,7 +1,7 @@
 use super::{
     dependency::{Dependency, ModVersionCompare, ResponseDependency},
-    download_count::DownloadCount,
     developer::ModDeveloper,
+    download_count::DownloadCount,
     incompatibility::{Incompatibility, ResponseIncompatibility},
     mod_gd_version::{DetailedGDVersion, GDVersionEnum, ModGDVersion, VerPlatform},
     mod_version_status::ModVersionStatusEnum,
@@ -15,12 +15,12 @@ use crate::types::{
 };
 use semver::Version;
 use serde::Serialize;
-use utoipa::ToSchema;
 use sqlx::{
     PgConnection, Postgres, QueryBuilder,
     types::chrono::{DateTime, Utc},
 };
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
 #[derive(Serialize, Debug, sqlx::FromRow, Clone, ToSchema)]
 pub struct ModVersion {

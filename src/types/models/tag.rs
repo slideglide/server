@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::database::{repository::mod_tags, DatabaseError};
+use crate::database::{DatabaseError, repository::mod_tags};
 use crate::endpoints::ApiError;
 use sqlx::PgConnection;
 use utoipa::ToSchema;

@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use crate::database::DatabaseError;
 use crate::types::models::tag::Tag;
 use sqlx::PgConnection;
+use std::collections::HashSet;
 
 #[tracing::instrument(skip_all)]
 pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError> {

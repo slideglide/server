@@ -3,14 +3,14 @@ use std::path::{Path, PathBuf};
 #[derive(Clone, Debug)]
 pub struct StaticStorage {
     base_path: PathBuf,
-    app_url: String
+    app_url: String,
 }
 
 impl StaticStorage {
     pub fn new(app_url: String) -> Self {
         Self {
             base_path: PathBuf::from("static"),
-            app_url
+            app_url,
         }
     }
 
@@ -32,14 +32,14 @@ impl StorageDisk for StaticStorage {
 #[derive(Clone, Debug)]
 pub struct PublicStorage {
     base_path: PathBuf,
-    app_url: String
+    app_url: String,
 }
 
 impl PublicStorage {
     pub fn new(app_url: String) -> Self {
         Self {
             base_path: PathBuf::from("storage/public"),
-            app_url
+            app_url,
         }
     }
 

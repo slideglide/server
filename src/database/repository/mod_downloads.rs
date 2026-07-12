@@ -1,7 +1,7 @@
 use crate::database::DatabaseError;
 use chrono::{Days, Utc};
-use sqlx::types::ipnetwork::IpNetwork;
 use sqlx::PgConnection;
+use sqlx::types::ipnetwork::IpNetwork;
 
 #[tracing::instrument(skip_all, fields(mod_version_id = %mod_version_id))]
 pub async fn create(

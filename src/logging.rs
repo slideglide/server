@@ -14,7 +14,9 @@ pub fn init() {
 
     let filter = EnvFilter::from(dotenvy::var("RUST_LOG").unwrap_or(DEFAULT_VALUE.into()));
 
-    let is_json = dotenvy::var("LOG_FORMAT").map(|v| v == "json").unwrap_or(false);
+    let is_json = dotenvy::var("LOG_FORMAT")
+        .map(|v| v == "json")
+        .unwrap_or(false);
 
     if is_json {
         tracing_subscriber::fmt()

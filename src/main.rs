@@ -1,4 +1,5 @@
 use crate::openapi::ApiDoc;
+use crate::storage::StorageDisk;
 use crate::types::api;
 use actix_cors::Cors;
 use actix_web::{
@@ -7,7 +8,6 @@ use actix_web::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use crate::storage::StorageDisk;
 
 mod abbreviate;
 mod auth;
@@ -21,9 +21,9 @@ mod jobs;
 mod logging;
 mod mod_zip;
 mod openapi;
+mod storage;
 mod types;
 mod webhook;
-mod storage;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -68,8 +68,7 @@ async fn main() -> anyhow::Result<()> {
             .service(actix_files::Files::new("/static", "static"))
             .service(actix_files::Files::new("/storage", "storage/public"));
 
-        app
-            .service(endpoints::mods::index)
+        app.service(endpoints::mods::index)
             .service(endpoints::mods::get_mod_updates)
             .service(endpoints::mods::get)
             .service(endpoints::mods::create)

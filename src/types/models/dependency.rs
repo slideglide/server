@@ -1,9 +1,9 @@
 use std::{collections::HashMap, fmt::Display};
 
+use crate::database::DatabaseError;
 use serde::{Deserialize, Serialize};
 use sqlx::PgConnection;
 use utoipa::ToSchema;
-use crate::database::DatabaseError;
 
 use super::mod_gd_version::{GDVersionEnum, VerPlatform};
 
@@ -46,7 +46,7 @@ impl FetchedDependency {
                 }
             },
             importance: self.importance,
-            required: self.importance == DependencyImportance::Required
+            required: self.importance == DependencyImportance::Required,
         }
     }
     pub fn to_response(&self) -> ResponseDependency {
@@ -60,7 +60,7 @@ impl FetchedDependency {
                 }
             },
             importance: self.importance,
-            required: self.importance == DependencyImportance::Required
+            required: self.importance == DependencyImportance::Required,
         }
     }
 }

@@ -27,7 +27,7 @@ pub struct SelfDeveloper {
     pub verified: bool,
     pub admin: bool,
     pub github_id: i64,
-    pub has_accepted_mod: bool
+    pub has_accepted_mod: bool,
 }
 
 impl Developer {
@@ -39,7 +39,7 @@ impl Developer {
             verified: self.verified,
             admin: self.admin,
             github_id: self.github_id,
-            has_accepted_mod
+            has_accepted_mod,
         }
     }
 }

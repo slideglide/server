@@ -6,7 +6,7 @@ use crate::{
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use sqlx::{types::Uuid, PgConnection, Postgres, QueryBuilder};
+use sqlx::{PgConnection, Postgres, QueryBuilder, types::Uuid};
 
 #[derive(Serialize, ToSchema)]
 pub struct GDVersionAlias {

@@ -18,10 +18,10 @@ use crate::webhook::discord::DiscordWebhook;
 use actix_multipart::Multipart;
 use actix_web::{HttpResponse, Responder, delete, get, post, put, web};
 use futures::StreamExt;
-use tracing::error;
 use serde::Deserialize;
 use sqlx::{Acquire, PgConnection};
 use std::collections::HashMap;
+use tracing::error;
 use utoipa::{IntoParams, ToSchema};
 
 fn sanitize_comment(raw: &str) -> String {
@@ -108,7 +108,7 @@ async fn check_submission_lock(
 #[tracing::instrument(skip_all, fields(mod_id = %path.id, version = %path.version))]
 pub async fn get_submission(
     path: web::Path<SubmissionPath>,
-    data: web::Data<AppData>
+    data: web::Data<AppData>,
 ) -> Result<impl Responder, ApiError> {
     let mut pool = data.db().acquire().await?;
 
@@ -118,12 +118,15 @@ pub async fn get_submission(
         return Err(ApiError::NotFound(format!("Mod {} not found", path.id)));
     }
 
-    let version = mod_versions::get_by_version_str(&path.id, &path.version, &mut tx).await?
+    let version = mod_versions::get_by_version_str(&path.id, &path.version, &mut tx)
+        .await?
         .ok_or_else(|| ApiError::NotFound("Version doesn't exist".into()))?;
 
     let mut row = mod_version_submissions::get_for_mod_version(version.id, &mut tx).await?;
 
-    if let None = row && version.status == ModVersionStatusEnum::Pending {
+    if let None = row
+        && version.status == ModVersionStatusEnum::Pending
+    {
         row = Some(mod_version_submissions::create(version.id, &mut tx).await?);
     }
 
@@ -267,7 +270,7 @@ pub async fn update_submission(
 pub async fn get_comments(
     path: web::Path<SubmissionPath>,
     data: web::Data<AppData>,
-    query: web::Query<CommentsQuery>
+    query: web::Query<CommentsQuery>,
 ) -> Result<impl Responder, ApiError> {
     let mut pool = data.db().acquire().await?;
 
@@ -329,10 +332,7 @@ pub async fn get_comments(
 
             let id = row.id;
 
-            Ok(row.into_comment(
-                author,
-                attachments_map.remove(&id).unwrap_or_default()
-            ))
+            Ok(row.into_comment(author, attachments_map.remove(&id).unwrap_or_default()))
         })
         .collect::<Result<Vec<_>, ApiError>>()?;
 
@@ -657,9 +657,10 @@ pub async fn delete_comment(
 
     for filename in attachment_filenames {
         if !references.contains_key(&filename)
-            && let Err(e) = data.public_storage().delete(&filename).await {
-                tracing::error!("Failed to delete attachment file {filename}: {e}");
-            }
+            && let Err(e) = data.public_storage().delete(&filename).await
+        {
+            tracing::error!("Failed to delete attachment file {filename}: {e}");
+        }
     }
 
     Ok(HttpResponse::NoContent())
@@ -682,7 +683,7 @@ pub async fn delete_comment(
 #[tracing::instrument(skip_all, fields(mod_id = %path.id, version = %path.version, comment_id = %path.comment_id))]
 pub async fn get_attachments(
     path: web::Path<CommentPath>,
-    data: web::Data<AppData>
+    data: web::Data<AppData>,
 ) -> Result<impl Responder, ApiError> {
     let mut pool = data.db().acquire().await?;
 
@@ -727,7 +728,7 @@ pub async fn get_attachments(
 #[allow(dead_code)]
 pub struct UploadAttachmentsForm {
     #[schema(value_type = Vec<String>, format = Binary)]
-    image: Vec<Vec<u8>>
+    image: Vec<Vec<u8>>,
 }
 
 /// Upload attachments to a submission comment
@@ -813,8 +814,7 @@ pub async fn upload_attachments(
         if existing + count > MAX_ATTACHMENTS_PER_COMMENT {
             return Err(ApiError::BadRequest(format!(
                 "Comment already has {} attachment(s); adding {} would exceed the limit of 5",
-                existing,
-                count
+                existing, count
             )));
         }
         let mut buf = bytes::BytesMut::new();
@@ -867,7 +867,8 @@ pub async fn upload_attachments(
                 .await?;
             stored_filenames.push(filename.clone());
             let row =
-                mod_version_submissions::create_attachment(path.comment_id, &filename, &mut tx).await?;
+                mod_version_submissions::create_attachment(path.comment_id, &filename, &mut tx)
+                    .await?;
             result.push(row.into_attachment(data.app_url()));
         }
         mod_version_submissions::insert_comment_audit(
@@ -888,7 +889,8 @@ pub async fn upload_attachments(
         .await?;
         tx.commit().await?;
         Ok(())
-    }.await;
+    }
+    .await;
 
     if let Err(e) = outcome {
         for filename in &stored_filenames {

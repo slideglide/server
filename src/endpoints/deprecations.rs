@@ -51,7 +51,7 @@ const MAX_MODS_PER_DEPRECATION: usize = 20;
 #[tracing::instrument(skip_all, fields(mod_id = %path.id))]
 pub async fn index(
     data: web::Data<AppData>,
-    path: web::Path<ModPath>
+    path: web::Path<ModPath>,
 ) -> Result<impl Responder, ApiError> {
     let mut pool = data.db().acquire().await?;
 

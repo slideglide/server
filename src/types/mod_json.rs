@@ -247,7 +247,9 @@ impl ModJson {
 
                     json.about = Some(
                         parse_zip_entry_to_str(&mut file)
-                            .inspect_err(|e| tracing::error!("Failed to parse about.md for mod: {e}"))
+                            .inspect_err(|e| {
+                                tracing::error!("Failed to parse about.md for mod: {e}")
+                            })
                             .map_err(|e| {
                                 ModZipError::InvalidModJson(format!("Failed to read about.md: {e}"))
                             })?,
@@ -600,9 +602,15 @@ impl ModJson {
             }
         }
 
-        if !self.windows && !self.ios && !self.android32 && !self.android64 && !self.mac_intel && !self.mac_arm {
+        if !self.windows
+            && !self.ios
+            && !self.android32
+            && !self.android64
+            && !self.mac_intel
+            && !self.mac_arm
+        {
             return Err(ModZipError::InvalidModJson(
-                "Mod has no binaries".to_string()
+                "Mod has no binaries".to_string(),
             ));
         }
 

@@ -1,4 +1,4 @@
-use actix_web::{get, web, Responder};
+use actix_web::{Responder, get, web};
 
 use super::ApiError;
 use crate::config::AppData;

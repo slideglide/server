@@ -1,16 +1,16 @@
 use actix_web::http::StatusCode;
-use actix_web::{dev::ConnectionInfo, post, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, dev::ConnectionInfo, post, web};
 use serde::Deserialize;
-use sqlx::{types::ipnetwork::IpNetwork, Acquire};
-use uuid::Uuid;
+use sqlx::{Acquire, types::ipnetwork::IpNetwork};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use crate::config::AppData;
 use crate::database::repository::{
     auth_tokens, developers, github_login_attempts, github_web_logins, refresh_tokens,
 };
-use crate::endpoints::auth::TokensResponse;
 use crate::endpoints::ApiError;
+use crate::endpoints::auth::TokensResponse;
 use crate::{auth::github, types::api::ApiResponse};
 
 #[derive(Deserialize, ToSchema)]
@@ -282,13 +282,10 @@ pub async fn github_token_login(
     );
 
     let user = match client.get_user(&json.token).await {
-        Err(_) => client
-            .get_installation(&json.token)
-            .await
-            .map_err(|e| {
-                tracing::error!(error = ?e, "invalid access token");
-                ApiError::BadRequest(format!("Invalid access token: {}", json.token))
-            })?,
+        Err(_) => client.get_installation(&json.token).await.map_err(|e| {
+            tracing::error!(error = ?e, "invalid access token");
+            ApiError::BadRequest(format!("Invalid access token: {}", json.token))
+        })?,
 
         Ok(u) => u,
     };

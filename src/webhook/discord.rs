@@ -23,7 +23,7 @@ impl DiscordMessage {
     pub fn content(self, content: &str) -> Self {
         DiscordMessage {
             embeds: self.embeds,
-            content: Some(content.into())
+            content: Some(content.into()),
         }
     }
 
@@ -36,7 +36,7 @@ impl DiscordMessage {
         if self.embeds.len() == 10 {
             return DiscordMessage {
                 content: self.content,
-                embeds: self.embeds
+                embeds: self.embeds,
             };
         }
 
@@ -61,7 +61,7 @@ impl DiscordMessage {
 
         DiscordMessage {
             content: self.content,
-            embeds
+            embeds,
         }
     }
 
@@ -76,13 +76,7 @@ impl DiscordMessage {
         let copy = self.clone();
 
         tokio::spawn(async move {
-
-            if let Err(e) = reqwest::Client::new()
-                .post(&url)
-                .json(&copy)
-                .send()
-                .await
-            {
+            if let Err(e) = reqwest::Client::new().post(&url).json(&copy).send().await {
                 tracing::error!("Failed to broadcast Discord webhook {}: {}", url, e);
             }
         });

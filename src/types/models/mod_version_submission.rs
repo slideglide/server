@@ -60,7 +60,7 @@ pub struct ModVersionSubmissionComment {
 #[derive(Serialize, ToSchema, Debug, Clone)]
 pub struct ModVersionSubmissionCommentAttachment {
     pub id: i64,
-    pub url: String
+    pub url: String,
 }
 
 pub struct ModVersionSubmissionCommentRow {
@@ -83,8 +83,9 @@ impl ModVersionSubmissionCommentRow {
             submission_id: self.submission_id,
             comment: self.comment,
             author,
-            attachments: attachments.into_iter()
-                .map(|(id, url)| ModVersionSubmissionCommentAttachment {id, url})
+            attachments: attachments
+                .into_iter()
+                .map(|(id, url)| ModVersionSubmissionCommentAttachment { id, url })
                 .collect(),
             created_at: self.created_at,
             updated_at: self.updated_at,

@@ -3,7 +3,8 @@ use crate::database::DatabaseError;
 use crate::types::{
     mod_json::ModJson,
     models::{
-        developer::Developer, mod_version::ModVersion, mod_version_status::ModVersionStatusEnum, mod_gd_version::ModGDVersion,
+        developer::Developer, mod_gd_version::ModGDVersion, mod_version::ModVersion,
+        mod_version_status::ModVersionStatusEnum,
     },
 };
 use chrono::{DateTime, Utc};

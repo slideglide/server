@@ -319,7 +319,8 @@ pub async fn get_attachments_for_comments(
     .await
     .inspect_err(|e| tracing::error!("{:?}", e))?;
 
-    let mut ret: HashMap<i64, Vec<ModVersionSubmissionAttachmentRow>> = HashMap::with_capacity(comment_ids.len());
+    let mut ret: HashMap<i64, Vec<ModVersionSubmissionAttachmentRow>> =
+        HashMap::with_capacity(comment_ids.len());
 
     for row in rows {
         ret.entry(row.comment_id).or_default().push(row);

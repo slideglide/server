@@ -12,7 +12,8 @@ use crate::database::repository::{
 };
 use crate::endpoints::ApiError;
 use crate::events::mod_created::{
-    NewModAcceptedEvent, NewModVersionAcceptedEvent, NewModVersionVerification, NewUnverifiedModVersionCreated,
+    NewModAcceptedEvent, NewModVersionAcceptedEvent, NewModVersionVerification,
+    NewUnverifiedModVersionCreated,
 };
 use crate::mod_zip::{self, download_mod};
 use crate::types::models;

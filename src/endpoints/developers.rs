@@ -1,6 +1,6 @@
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, delete, get, post, put, web};
 use serde::{Deserialize, Serialize};
-use utoipa::{ToSchema, IntoParams};
+use utoipa::{IntoParams, ToSchema};
 
 use super::ApiError;
 use crate::config::AppData;
@@ -9,12 +9,10 @@ use crate::types::api::{ApiResponse, PaginatedData};
 use crate::types::models::developer::SelfDeveloper;
 use crate::{
     extractors::auth::Auth,
-    types::{
-        models::{
-            developer::{ModDeveloper, Developer},
-            mod_entity::Mod,
-            mod_version_status::ModVersionStatusEnum,
-        },
+    types::models::{
+        developer::{Developer, ModDeveloper},
+        mod_entity::Mod,
+        mod_version_status::ModVersionStatusEnum,
     },
 };
 

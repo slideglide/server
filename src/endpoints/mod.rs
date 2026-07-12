@@ -71,9 +71,6 @@ impl actix_web::ResponseError for ApiError {
     }
 
     fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-        if self.status_code().is_server_error() {
-            tracing::error!(error = ?self, "request failed");
-        }
         HttpResponse::build(self.status_code()).json(self.as_response())
     }
 }

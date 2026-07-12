@@ -70,7 +70,7 @@ Third, we need to setup a local GitHub OAuth app. Since the index doesn't store 
 ## 4. Logging
 
 Logging is configured via environment variables. See the `.env.example` file for the available options:
-- `RUST_LOG`: Controls log verbosity (e.g., "info", "debug", "info,sqlx=warn", "geode_index=debug"). Defaults to "info,sqlx=warn,tracing_actix_web=error" when unset.
+- `RUST_LOG`: Controls log verbosity (e.g., "info", "debug", "info,sqlx=warn", "geode_index=debug"). Defaults to "info,sqlx=warn,tracing_actix_web::middleware=error" when unset.
 - `LOG_FORMAT`: Output format - "text" (default, human-readable) or "json" (structured, for log aggregation).
 
 After all of this is done, you should be able to run `cargo run` inside the index directory. The migrations will be ran automatically, and the index will start. You can check `http://localhost:8080` (if you haven't changed the port in your .env file) to see if it all works.

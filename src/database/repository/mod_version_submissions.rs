@@ -23,6 +23,7 @@ pub async fn get_for_mod_version(
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -41,6 +42,7 @@ pub async fn get_audit_for_submission(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -57,7 +59,8 @@ pub async fn create(
         mod_version_id
     )
     .fetch_one(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     insert_submission_audit(mod_version_id, AuditAction::Created, None, None, conn).await?;
     Ok(row)
@@ -103,6 +106,7 @@ pub async fn set_locked(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -128,6 +132,7 @@ pub async fn get_paginated_comments_for_submission(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -142,6 +147,7 @@ pub async fn count_comments_for_submission(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
 }
@@ -164,6 +170,7 @@ pub async fn create_comment(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -181,6 +188,7 @@ pub async fn get_comment(
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -201,6 +209,7 @@ pub async fn update_comment(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -214,7 +223,8 @@ pub async fn delete_comment(
         comment_id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -233,6 +243,7 @@ pub async fn get_audit_for_comment(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -247,6 +258,7 @@ pub async fn count_attachments_for_comment(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
 }
@@ -267,6 +279,7 @@ pub async fn create_attachment(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -285,6 +298,7 @@ pub async fn get_attachments_for_comment(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e: Error| e.into())
 }
 
@@ -302,7 +316,8 @@ pub async fn get_attachments_for_comments(
         comment_ids
     )
     .fetch_all(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let mut ret: HashMap<i64, Vec<ModVersionSubmissionAttachmentRow>> = HashMap::with_capacity(comment_ids.len());
 
@@ -327,6 +342,7 @@ pub async fn get_attachment(
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -340,7 +356,8 @@ pub async fn delete_attachment(
         attachment_id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
     Ok(result.rows_affected() > 0)
 }
 
@@ -355,6 +372,7 @@ pub async fn count_references_to_filename(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|c| c.unwrap_or(0))
     .map_err(|e| e.into())
 }
@@ -374,6 +392,7 @@ pub async fn count_references_to_filenames(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|x| {
         x.into_iter()
             .map(|record| (record.filename, record.count.unwrap_or(0)))
@@ -400,6 +419,7 @@ pub async fn insert_submission_audit(
     )
     .execute(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|_| ())
     .map_err(|e| e.into())
 }
@@ -422,6 +442,7 @@ pub async fn insert_comment_audit(
     )
         .execute(conn)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map(|_| ())
         .map_err(|e| e.into())
 }

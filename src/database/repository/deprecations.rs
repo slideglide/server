@@ -15,7 +15,8 @@ pub async fn get_for_mods(
         ids
     )
     .fetch_all(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let mut bys: Vec<_> = sqlx::query!(
         "SELECT dby.deprecation_id, dby.by_mod_id
@@ -24,7 +25,8 @@ pub async fn get_for_mods(
         &deps.iter().map(|d| d.id).collect::<Vec<i32>>()
     )
     .fetch_all(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(deps
         .into_iter()
@@ -52,7 +54,8 @@ pub async fn get(id: i32, conn: &mut PgConnection) -> Result<Option<Deprecation>
         id
     )
     .fetch_optional(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .map(|x| Deprecation {
         id,
         mod_id: x.mod_id,
@@ -73,7 +76,8 @@ pub async fn get(id: i32, conn: &mut PgConnection) -> Result<Option<Deprecation>
         dep.id
     )
     .fetch_all(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     dep.by = deprecated_by.into_iter().map(|b| b.by_mod_id).collect();
 
@@ -97,7 +101,8 @@ pub async fn create(
         updated_by.id
     )
     .fetch_one(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .id;
 
     if !by.is_empty() {
@@ -138,7 +143,8 @@ pub async fn update(
             deprecation.id
         )
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         deprecation.reason = reason.to_string();
 
@@ -152,7 +158,8 @@ pub async fn update(
             deprecation.id
         )
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         insert_deprecated_by(deprecation.id, by, &mut *conn).await?;
 
@@ -169,7 +176,8 @@ pub async fn update(
             deprecation.id
         )
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
     }
 
     Ok(deprecation)
@@ -183,7 +191,8 @@ pub async fn delete(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseErro
         id
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -196,7 +205,8 @@ pub async fn clear_all(mod_id: &str, conn: &mut PgConnection) -> Result<(), Data
         mod_id
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -225,6 +235,7 @@ async fn insert_deprecated_by(
     )
     .execute(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|_| ())
     .map_err(|e| e.into())
 }

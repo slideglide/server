@@ -33,7 +33,8 @@ pub async fn create(
         &mod_id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(json.gd.clone())
 }
@@ -47,6 +48,7 @@ pub async fn clear(mod_version_id: i32, conn: &mut PgConnection) -> Result<(), D
     )
     .execute(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
     .map(|_| ())
 }

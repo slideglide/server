@@ -246,7 +246,8 @@ impl ModGDVersion {
             id
         )
         .fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
         let mut ret = DetailedGDVersion {
             win: None,
             mac: None,
@@ -298,7 +299,8 @@ impl ModGDVersion {
             versions
         )
         .fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         let mut ret: HashMap<i32, DetailedGDVersion> = HashMap::new();
         for i in result {

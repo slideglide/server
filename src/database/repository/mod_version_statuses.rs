@@ -20,6 +20,7 @@ pub async fn create(
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|i| i.id)
     .map_err(|e| e.into())
 }

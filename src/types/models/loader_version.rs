@@ -165,6 +165,7 @@ impl LoaderVersion {
             .build_query_as::<LoaderVersionGetOne>()
             .fetch_optional(&mut *pool)
             .await
+            .inspect_err(|e| tracing::error!("{:?}", e))
             .map_err(|e| e.into())
             .map(|x| x.map(|y| y.into_loader_version()))
     }
@@ -185,6 +186,7 @@ impl LoaderVersion {
         )
         .fetch_optional(&mut *pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
         .map(|x| x.map(|y| y.into_loader_version()))
     }
@@ -209,6 +211,7 @@ impl LoaderVersion {
         )
         .execute(&mut *pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map(|_| ())
         .map_err(|e| e.into())
     }
@@ -291,6 +294,7 @@ impl LoaderVersion {
             .build_query_as::<LoaderVersionGetOne>()
             .fetch_all(&mut *pool)
             .await
+            .inspect_err(|e| tracing::error!("{:?}", e))
             .map(|x| x.into_iter().map(|y| y.into_loader_version()).collect())
             .map_err(|e| e.into())
     }

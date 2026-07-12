@@ -84,6 +84,7 @@ pub async fn get_by_version_str(
     )
         .fetch_optional(conn)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
         .map(|opt| opt.map(|x| x.into_mod_version()))
 }
@@ -112,7 +113,8 @@ pub async fn get_for_mod(
         statuses as Option<&[ModVersionStatusEnum]>
     )
         .fetch_all(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let version_ids: Vec<i32> = records.iter().map(|x| x.id).collect();
     let mut gd_versions = ModGDVersion::get_for_mod_versions(&version_ids, conn).await?;
@@ -138,7 +140,8 @@ pub async fn increment_downloads(id: i32, conn: &mut PgConnection) -> Result<(),
         id
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -151,7 +154,8 @@ pub async fn create_from_json(
 ) -> Result<ModVersion, DatabaseError> {
     sqlx::query!("SET CONSTRAINTS mod_versions_status_id_fkey DEFERRED")
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let geode = Version::parse(&json.geode).or(Err(DatabaseError::InvalidInput(
         "mod.json geode version is invalid semver".into(),
@@ -191,7 +195,8 @@ pub async fn create_from_json(
         json.requires_patching
     )
     .fetch_one(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let id = row.id;
 
@@ -207,11 +212,13 @@ pub async fn create_from_json(
         id
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     sqlx::query!("SET CONSTRAINTS mod_versions_status_id_fkey IMMEDIATE")
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(ModVersion {
         id,
@@ -302,7 +309,8 @@ pub async fn update_pending_version(
         version_id
     )
     .fetch_one(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     if make_accepted {
         sqlx::query!(
@@ -312,7 +320,8 @@ pub async fn update_pending_version(
             row.status_id
         )
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
     }
 
     Ok(ModVersion {
@@ -369,7 +378,8 @@ pub async fn update_version_status(
         version.id
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     version.status = status;
 

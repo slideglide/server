@@ -37,7 +37,8 @@ pub async fn index(
         offset
     )
     .fetch_all(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let count = index_count(query, &mut *conn).await?;
 
@@ -63,6 +64,7 @@ pub async fn index_count(
     )
     .fetch_one(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|x| x.count.unwrap_or(0))
     .map_err(|e| e.into())
 }
@@ -87,7 +89,8 @@ pub async fn fetch_or_insert_github(
         github_id
     )
     .fetch_optional(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     {
         Some(dev) => Ok(dev),
         None => Ok(insert_github(github_id, username, conn).await?),
@@ -116,6 +119,7 @@ async fn insert_github(
     )
     .fetch_one(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -136,6 +140,7 @@ pub async fn get_one(id: i32, conn: &mut PgConnection) -> Result<Option<Develope
     )
     .fetch_optional(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -162,6 +167,7 @@ pub async fn get_many_by_id(
     )
     .fetch_all(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -192,6 +198,7 @@ pub async fn get_one_by_username(
     )
     .fetch_optional(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|x| x.into())
 }
 
@@ -215,6 +222,7 @@ pub async fn get_all_for_mod(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -249,7 +257,8 @@ pub async fn get_all_for_mods(
         mod_ids
     )
     .fetch_all(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let mut ret: HashMap<String, Vec<ModDeveloper>> = HashMap::new();
 
@@ -282,6 +291,7 @@ pub async fn has_access_to_mod(
     )
     .fetch_optional(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|x| x.is_some())
     .map_err(|e| e.into())
 }
@@ -300,6 +310,7 @@ pub async fn has_active_mod(dev_id: i32, conn: &mut PgConnection) -> Result<bool
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
     .map(|result| result.is_some())
 }
@@ -319,7 +330,8 @@ pub async fn owns_mod(
         mod_id
     )
     .fetch_optional(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .is_some())
 }
 
@@ -345,6 +357,7 @@ pub async fn get_owner_for_mod(
     )
     .fetch_optional(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -374,6 +387,7 @@ pub async fn update_status(
     )
     .fetch_one(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -400,6 +414,7 @@ pub async fn update_profile(
     )
     .fetch_one(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -426,6 +441,7 @@ pub async fn find_by_refresh_token(
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -455,6 +471,7 @@ pub async fn find_by_token(
     )
     .fetch_optional(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -472,6 +489,7 @@ pub async fn has_accepted_mod(id: i32, conn: &mut PgConnection) -> Result<bool, 
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|x| x.is_some())
     .map_err(|e| e.into())
 }

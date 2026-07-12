@@ -191,7 +191,8 @@ impl Dependency {
         .bind(geode.map(|x| i32::try_from(x.patch).unwrap_or_default()))
         .bind(geode_pre)
         .fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         let mut ret: HashMap<i32, Vec<FetchedDependency>> = HashMap::new();
         for i in result {

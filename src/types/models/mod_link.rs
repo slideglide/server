@@ -29,6 +29,7 @@ impl ModLinks {
         )
         .fetch_optional(pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
     }
 
@@ -51,6 +52,7 @@ impl ModLinks {
         )
         .fetch_all(pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
     }
 }

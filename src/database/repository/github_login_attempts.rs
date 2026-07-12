@@ -28,6 +28,7 @@ pub async fn get_one_by_ip(
     )
     .fetch_optional(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -54,6 +55,7 @@ pub async fn get_one_by_uuid(
     )
     .fetch_optional(pool)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -91,6 +93,7 @@ pub async fn create(
     )
     .fetch_one(&mut *pool)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -105,7 +108,8 @@ pub async fn poll_now(uuid: Uuid, conn: &mut PgConnection) -> Result<(), Databas
         uuid
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -114,7 +118,8 @@ pub async fn poll_now(uuid: Uuid, conn: &mut PgConnection) -> Result<(), Databas
 pub async fn remove(uuid: Uuid, conn: &mut PgConnection) -> Result<(), DatabaseError> {
     sqlx::query!("DELETE FROM github_login_attempts WHERE uid = $1", uuid)
         .execute(conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }

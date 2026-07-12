@@ -15,7 +15,8 @@ pub async fn get_all_writable(conn: &mut PgConnection) -> Result<Vec<Tag>, Datab
         where is_readonly = false"
     )
     .fetch_all(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -47,7 +48,8 @@ pub async fn get_allowed_for_mod(
         id
     )
     .fetch_all(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -73,7 +75,8 @@ pub async fn get_all(conn: &mut PgConnection) -> Result<Vec<Tag>, DatabaseError>
         FROM mod_tags"
     )
     .fetch_all(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .into_iter()
     .map(|i| Tag {
         id: i.id,
@@ -101,6 +104,7 @@ pub async fn get_for_mod(id: &str, conn: &mut PgConnection) -> Result<Vec<Tag>, 
     )
     .fetch_all(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
     .map(|vec| {
         vec.into_iter()
@@ -145,7 +149,8 @@ pub async fn update_for_mod(
             &deletable
         )
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
     }
 
     if !insertable.is_empty() {
@@ -162,7 +167,8 @@ pub async fn update_for_mod(
             &insertable
         )
         .execute(&mut *conn)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
     }
 
     Ok(())

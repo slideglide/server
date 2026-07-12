@@ -132,7 +132,8 @@ impl Mod {
         "
         )
         .fetch_optional(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         if let Some((Some(total_count), Some(total_downloads))) =
             result.map(|o| (o.id_count, o.download_sum))
@@ -186,7 +187,7 @@ impl Mod {
         };
 
         let order = match query.sort {
-            IndexSortType::Downloads => "q.download_count DESC",
+            IndexSortType::Downloads => "q.download_acount DESC",
             IndexSortType::RecentlyUpdated => "q.updated_at DESC",
             IndexSortType::RecentlyPublished => "q.created_at DESC",
             IndexSortType::Oldest => "q.created_at ASC",
@@ -362,7 +363,8 @@ impl Mod {
         let records: Vec<ModRecord> = records_builder
             .build_query_as()
             .fetch_all(&mut *pool)
-            .await?;
+            .await
+            .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         let mut count_builder = sqlx::QueryBuilder::new("SELECT COUNT(DISTINCT m.id) ");
 
@@ -371,7 +373,8 @@ impl Mod {
         let count: i64 = count_builder
             .build_query_scalar()
             .fetch_optional(&mut *pool)
-            .await?
+            .await
+            .inspect_err(|e| tracing::error!("{:?}", e))?
             .unwrap_or_default();
 
         if records.is_empty() {
@@ -398,8 +401,8 @@ impl Mod {
         let mut developers = developers::get_all_for_mods(&ids, pool).await?;
         let links = ModLinks::fetch_for_mods(&ids, pool).await?;
         let mod_version_ids: Vec<i32> = versions
-            .iter()
-            .map(|(_, mod_version)| mod_version.id)
+            .values()
+            .map(|mod_version| mod_version.id)
             .collect();
 
         let mut gd_versions = ModGDVersion::get_for_mod_versions(&mod_version_ids, pool).await?;
@@ -528,7 +531,8 @@ impl Mod {
             only_owner
         )
         .fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         if records.is_empty() {
             return Ok(vec![]);
@@ -596,7 +600,8 @@ impl Mod {
             only_accepted
         )
         .fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         if records.is_empty() {
             return Ok(None);
@@ -678,6 +683,7 @@ impl Mod {
         sqlx::query!("UPDATE mods SET featured = $1 WHERE id = $2", featured, id)
             .execute(&mut *pool)
             .await
+            .inspect_err(|e| tracing::error!("{:?}", e))
             .map_err(|e| e.into())
             .map(|_| ())
     }
@@ -748,7 +754,8 @@ impl Mod {
             geode_pre
         )
         .fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         if result.is_empty() {
             return Ok(vec![]);

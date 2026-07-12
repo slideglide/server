@@ -26,7 +26,8 @@ pub async fn upsert(
         source
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(ModLinks {
         mod_id: mod_id.into(),

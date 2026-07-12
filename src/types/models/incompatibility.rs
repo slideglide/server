@@ -107,6 +107,7 @@ impl Incompatibility {
         )
         .fetch_all(&mut *pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
     }
 
@@ -162,7 +163,10 @@ impl Incompatibility {
         .bind(geode.map(|x| i64::try_from(x.patch).ok()))
         .bind(geode_pre);
 
-        let result = q.fetch_all(&mut *pool).await?;
+        let result = q
+            .fetch_all(&mut *pool)
+            .await
+            .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         let mut ret: HashMap<i32, Vec<FetchedIncompatibility>> = HashMap::new();
 

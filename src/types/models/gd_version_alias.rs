@@ -86,6 +86,7 @@ impl GDVersionAlias {
             .build_query_scalar::<GDVersionEnum>()
             .fetch_optional(&mut *pool)
             .await
+            .inspect_err(|e| tracing::error!("{:?}", e))
             .map_err(|e| e.into())
     }
 }

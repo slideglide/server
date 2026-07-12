@@ -249,12 +249,14 @@ impl ModVersion {
         let records = q
             .build_query_as::<ModVersionGetOne>()
             .fetch_all(&mut *pool)
-            .await?;
+            .await
+            .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         let count: i64 = counter_q
             .build_query_scalar()
             .fetch_one(&mut *pool)
-            .await?;
+            .await
+            .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         if records.is_empty() {
             return Ok(PaginatedData {
@@ -371,6 +373,7 @@ impl ModVersion {
         .bind(requires_patching)
         .fetch_all(&mut *pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
         .map(|result: Vec<ModVersionGetOne>| {
             result.into_iter()
@@ -402,7 +405,8 @@ impl ModVersion {
             ORDER BY mv.id DESC"#,
             ids
         ).fetch_all(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
 
         let mut ret: HashMap<String, Vec<ModVersion>> = HashMap::new();
 
@@ -471,7 +475,8 @@ impl ModVersion {
         let version = query_builder
             .build_query_as::<ModVersionGetOne>()
             .fetch_optional(&mut *pool)
-            .await?
+            .await
+            .inspect_err(|e| tracing::error!("{:?}", e))?
             .map(|v| v.into_mod_version());
 
         let Some(mut version) = version else {
@@ -531,7 +536,8 @@ impl ModVersion {
             fetch_only_accepted
         )
         .fetch_optional(&mut *pool)
-        .await?
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?
         .map(|x| x.into_mod_version());
 
         let Some(mut version) = result else {
@@ -576,6 +582,7 @@ impl ModVersion {
         )
         .fetch_one(&mut *pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map(|x| x.unwrap_or_default())
         .map_err(|e| e.into())
     }

@@ -65,6 +65,7 @@ pub async fn create(
     )
     .fetch_all(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
 }
 
@@ -77,6 +78,7 @@ pub async fn clear(id: i32, conn: &mut PgConnection) -> Result<(), DatabaseError
     )
     .execute(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
     .map(|_| ())
 }

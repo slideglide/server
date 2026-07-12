@@ -53,6 +53,7 @@ impl Stats {
         )
         .fetch_one(&mut *pool)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map(|d| (d.checked_at, d.total_download_count))
         {
             if Utc::now().signed_duration_since(cache_time).num_days() < 1 {
@@ -69,7 +70,8 @@ impl Stats {
             new.1
         )
         .execute(&mut *pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?;
         Ok(new.0)
     }
 

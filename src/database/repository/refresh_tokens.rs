@@ -20,7 +20,8 @@ pub async fn generate_token(
         expiry
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(token)
 }
@@ -34,7 +35,8 @@ pub async fn remove_token(token: Uuid, conn: &mut PgConnection) -> Result<(), Da
         hash
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -50,7 +52,8 @@ pub async fn remove_developer_tokens(
         developer_id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -62,7 +65,8 @@ pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
         WHERE expires_at < NOW()"
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }

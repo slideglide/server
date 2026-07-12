@@ -17,7 +17,8 @@ pub async fn create(
         ip
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(result.rows_affected() > 0)
 }
@@ -39,6 +40,7 @@ pub async fn has_downloaded_mod(
     )
     .fetch_optional(&mut *conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
     .map(|x| x.is_some())
 }
@@ -52,7 +54,8 @@ pub async fn cleanup(conn: &mut PgConnection) -> Result<(), DatabaseError> {
         date
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }

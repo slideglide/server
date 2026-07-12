@@ -60,6 +60,7 @@ pub async fn get_one(
         )
         .fetch_optional(conn)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
         .map(|x| x.map(|x| x.into_mod()))
     } else {
@@ -74,6 +75,7 @@ pub async fn get_one(
         )
         .fetch_optional(conn)
         .await
+        .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
         .map(|x| x.map(|x| x.into_mod()))
     }
@@ -104,6 +106,7 @@ pub async fn create(json: &ModJson, conn: &mut PgConnection) -> Result<Mod, Data
     )
     .fetch_one(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map_err(|e| e.into())
     .map(|x| x.into_mod())
 }
@@ -133,6 +136,7 @@ pub async fn assign_developer(
     )
     .execute(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|_| ())
     .map_err(|e| e.into())
 }
@@ -152,6 +156,7 @@ pub async fn unassign_developer(
     )
     .execute(conn)
     .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
     .map(|_| ())
     .map_err(|e| e.into())
 }
@@ -160,7 +165,8 @@ pub async fn unassign_developer(
 pub async fn is_featured(id: &str, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     Ok(sqlx::query!("SELECT featured FROM mods WHERE id = $1", id)
         .fetch_optional(&mut *conn)
-        .await?
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?
         .map(|row| row.featured)
         .unwrap_or(false))
 }
@@ -169,7 +175,8 @@ pub async fn is_featured(id: &str, conn: &mut PgConnection) -> Result<bool, Data
 pub async fn exists(id: &str, conn: &mut PgConnection) -> Result<bool, DatabaseError> {
     Ok(sqlx::query!("SELECT id FROM mods WHERE id = $1", id)
         .fetch_optional(&mut *conn)
-        .await?
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?
         .is_some())
 }
 
@@ -183,7 +190,8 @@ pub async fn exists_multiple(
 ) -> Result<(Vec<String>, Vec<String>), DatabaseError> {
     let mods: HashSet<String> = sqlx::query!("SELECT id FROM mods WHERE id = ANY($1)", ids)
         .fetch_all(&mut *conn)
-        .await?
+        .await
+        .inspect_err(|e| tracing::error!("{:?}", e))?
         .into_iter()
         .map(|x| x.id)
         .collect();
@@ -219,7 +227,8 @@ pub async fn get_logo(id: &str, conn: &mut PgConnection) -> Result<Option<Vec<u8
         id
     )
     .fetch_optional(&mut *conn)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?
     .and_then(|optional| optional.image);
 
     // Empty vec means no image
@@ -239,7 +248,8 @@ pub async fn increment_downloads(id: &str, conn: &mut PgConnection) -> Result<()
         id
     )
     .execute(&mut *conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }
@@ -265,7 +275,8 @@ pub async fn update_with_json(
         the_mod.id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     the_mod.repository = json.repository.clone();
     the_mod.about = json.about.clone();
@@ -295,7 +306,8 @@ pub async fn update_with_json_moved(
         the_mod.id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     the_mod.repository = json.repository;
     the_mod.about = json.about;
@@ -315,7 +327,8 @@ pub async fn touch_created_at(id: &str, conn: &mut PgConnection) -> Result<(), D
         id
     )
     .execute(conn)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     Ok(())
 }

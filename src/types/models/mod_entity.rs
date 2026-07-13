@@ -193,6 +193,7 @@ impl Mod {
             IndexSortType::Oldest => "q.created_at ASC",
             IndexSortType::Name => "q.name ASC",
             IndexSortType::NameReverse => "q.name DESC",
+            IndexSortType::Random => "RANDOM()",
         };
 
         let geode = query

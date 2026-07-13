@@ -255,37 +255,6 @@ pub async fn increment_downloads(id: &str, conn: &mut PgConnection) -> Result<()
 }
 
 #[tracing::instrument(skip_all, fields(mod_id = %the_mod.id))]
-pub async fn update_with_json(
-    mut the_mod: Mod,
-    json: &ModJson,
-    conn: &mut PgConnection,
-) -> Result<Mod, DatabaseError> {
-    sqlx::query!(
-        "UPDATE mods
-        SET repository = $1,
-        about = $2,
-        changelog = $3,
-        image = $4,
-        updated_at = NOW()
-        WHERE id = $5",
-        json.repository,
-        json.about,
-        json.changelog,
-        json.logo,
-        the_mod.id
-    )
-    .execute(conn)
-    .await
-    .inspect_err(|e| tracing::error!("{:?}", e))?;
-
-    the_mod.repository = json.repository.clone();
-    the_mod.about = json.about.clone();
-    the_mod.changelog = json.changelog.clone();
-
-    Ok(the_mod)
-}
-
-#[tracing::instrument(skip_all, fields(mod_id = %the_mod.id))]
 pub async fn update_with_json_moved(
     mut the_mod: Mod,
     json: ModJson,

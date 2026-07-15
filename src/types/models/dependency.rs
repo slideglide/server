@@ -183,7 +183,8 @@ impl Dependency {
             ) as q
             WHERE q.rn = 1
             "#,
-        ).bind(ids)
+        )
+        .bind(ids)
         .bind(gd)
         .bind(platform)
         .bind(geode.map(|x| i32::try_from(x.major).unwrap_or_default()))

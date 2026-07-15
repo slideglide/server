@@ -83,11 +83,11 @@ pub async fn get_by_version_str(
         mod_id,
         version
     )
-        .fetch_optional(conn)
-        .await
-        .inspect_err(|e| tracing::error!("{:?}", e))
-        .map_err(|e| e.into())
-        .map(|opt| opt.map(|x| x.into_mod_version()))
+    .fetch_optional(conn)
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))
+    .map_err(|e| e.into())
+    .map(|opt| opt.map(|x| x.into_mod_version()))
 }
 
 #[tracing::instrument(skip_all, fields(mod_id = %mod_id, statuses = ?statuses))]
@@ -113,9 +113,9 @@ pub async fn get_for_mod(
         mod_id,
         statuses as Option<&[ModVersionStatusEnum]>
     )
-        .fetch_all(&mut *conn)
-        .await
-        .inspect_err(|e| tracing::error!("{:?}", e))?;
+    .fetch_all(&mut *conn)
+    .await
+    .inspect_err(|e| tracing::error!("{:?}", e))?;
 
     let version_ids: Vec<i32> = records.iter().map(|x| x.id).collect();
     let mut gd_versions = ModGDVersion::get_for_mod_versions(&version_ids, conn).await?;

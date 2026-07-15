@@ -3,7 +3,9 @@ use std::{sync::Arc, time::Duration};
 use moka::future::Cache;
 
 use crate::{
-    endpoints::mods::IndexQueryParams, storage::{LocalBackend, PrivateDisk, PublicDisk}, types::{
+    endpoints::mods::IndexQueryParams,
+    storage::{LocalBackend, PrivateDisk, PublicDisk},
+    types::{
         api::{ApiResponse, PaginatedData},
         models::mod_entity::Mod,
     },
@@ -76,8 +78,14 @@ pub async fn build_config() -> anyhow::Result<AppData> {
         },
         webhook_url,
         index_admin_webhook_url,
-        static_storage: PublicDisk::new(Arc::new(LocalBackend::new("static")), format!("{app_url}/static")),
-        public_storage: PublicDisk::new(Arc::new(LocalBackend::new("storage/public")), format!("{app_url}/storage")),
+        static_storage: PublicDisk::new(
+            Arc::new(LocalBackend::new("static")),
+            format!("{app_url}/static"),
+        ),
+        public_storage: PublicDisk::new(
+            Arc::new(LocalBackend::new("storage/public")),
+            format!("{app_url}/storage"),
+        ),
         private_storage: PrivateDisk::new(Arc::new(LocalBackend::new("storage/private"))),
         disable_downloads,
         max_download_mb,

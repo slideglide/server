@@ -356,8 +356,9 @@ impl ModVersion {
                     )
                 )
             ) q
-            WHERE q.rn = 1"
-        ).bind(gd_vec.as_ref())
+            WHERE q.rn = 1",
+        )
+        .bind(gd_vec.as_ref())
         .bind(platforms)
         .bind(ids)
         .bind(geode.map(|x| i32::try_from(x.major).unwrap_or_default()))
@@ -376,7 +377,8 @@ impl ModVersion {
         .inspect_err(|e| tracing::error!("{:?}", e))
         .map_err(|e| e.into())
         .map(|result: Vec<ModVersionGetOne>| {
-            result.into_iter()
+            result
+                .into_iter()
                 .map(|i| (i.mod_id.clone(), i.into_mod_version()))
                 .collect::<HashMap<_, _>>()
         })
@@ -404,7 +406,8 @@ impl ModVersion {
             AND mv.mod_id = ANY($1)
             ORDER BY mv.id DESC"#,
             ids
-        ).fetch_all(&mut *pool)
+        )
+        .fetch_all(&mut *pool)
         .await
         .inspect_err(|e| tracing::error!("{:?}", e))?;
 

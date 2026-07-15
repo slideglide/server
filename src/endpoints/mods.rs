@@ -351,7 +351,9 @@ pub async fn get_mod_updates(
     let mut pool = data.db().acquire().await?;
 
     if query.platform == VerPlatform::Android || query.platform == VerPlatform::Mac {
-        return Err(ApiError::BadRequest("Invalid platform. Use android32 / android64 for android and mac-intel / mac-arm for mac".to_string()));
+        return Err(ApiError::BadRequest(
+            "Invalid platform. Use android32 / android64 for android and mac-intel / mac-arm for mac".to_string(),
+        ));
     }
 
     let ids = query

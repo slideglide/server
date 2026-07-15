@@ -187,7 +187,7 @@ impl Mod {
         };
 
         let order = match query.sort {
-            IndexSortType::Downloads => "q.download_acount DESC",
+            IndexSortType::Downloads => "q.download_count DESC",
             IndexSortType::RecentlyUpdated => "q.updated_at DESC",
             IndexSortType::RecentlyPublished => "q.created_at DESC",
             IndexSortType::Oldest => "q.created_at ASC",

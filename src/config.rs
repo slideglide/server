@@ -1,10 +1,15 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{Arc, OnceLock},
+    time::Duration,
+};
 
 use moka::future::Cache;
+use tokio::sync::mpsc::Sender;
 
 use crate::{
     endpoints::mods::IndexQueryParams,
-    storage::{LocalBackend, PrivateDisk, PublicDisk},
+    s3_worker::S3WorkerTask,
+    storage::{LocalBackend, PrivateDisk, PublicDisk, S3Backend, S3Configuration},
     types::{
         api::{ApiResponse, PaginatedData},
         models::mod_entity::Mod,
@@ -22,12 +27,16 @@ pub struct AppData {
     static_storage: PublicDisk,
     public_storage: PublicDisk,
     private_storage: PrivateDisk,
+    mod_storage: Option<PublicDisk>,
     disable_downloads: bool,
     max_download_mb: u32,
     port: u16,
     debug: bool,
 
     mods_cache: Cache<IndexQueryParams, ApiResponse<PaginatedData<Mod>>>,
+    http_client: reqwest::Client,
+
+    s3_sender: OnceLock<Sender<S3WorkerTask>>,
 }
 
 #[derive(Clone)]
@@ -68,6 +77,13 @@ pub async fn build_config() -> anyhow::Result<AppData> {
         .time_to_live(Duration::from_mins(10))
         .build();
 
+    let mod_storage = if let Some(s3_config) = S3Configuration::from_env()? {
+        let backend = Arc::new(S3Backend::new(&s3_config)?);
+        Some(PublicDisk::new(backend, s3_config.public_url))
+    } else {
+        None
+    };
+
     Ok(AppData {
         db: pool,
         app_url: app_url.clone(),
@@ -87,11 +103,18 @@ pub async fn build_config() -> anyhow::Result<AppData> {
             format!("{app_url}/storage"),
         ),
         private_storage: PrivateDisk::new(Arc::new(LocalBackend::new("storage/private"))),
+        mod_storage,
         disable_downloads,
         max_download_mb,
         port,
         debug,
         mods_cache,
+        http_client: reqwest::Client::builder()
+            .pool_max_idle_per_host(4)
+            .connect_timeout(Duration::from_secs(10))
+            .read_timeout(Duration::from_secs(30))
+            .build()?,
+        s3_sender: OnceLock::new(),
     })
 }
 
@@ -158,7 +181,29 @@ impl AppData {
         &self.private_storage
     }
 
+    pub fn mod_storage(&self) -> Option<&PublicDisk> {
+        self.mod_storage.as_ref()
+    }
+
     pub fn mods_cache(&self) -> &Cache<IndexQueryParams, ApiResponse<PaginatedData<Mod>>> {
         &self.mods_cache
+    }
+
+    pub fn http_client(&self) -> &reqwest::Client {
+        &self.http_client
+    }
+
+    pub fn init_s3_sender(&self, sender: Sender<S3WorkerTask>) {
+        self.s3_sender
+            .set(sender)
+            .expect("init_s3_sender must be called only once");
+    }
+
+    pub fn send_s3_task(&self, task: S3WorkerTask) -> bool {
+        if let Some(sender) = self.s3_sender.get() {
+            sender.try_send(task).is_ok()
+        } else {
+            false
+        }
     }
 }

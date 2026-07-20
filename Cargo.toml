@@ -28,6 +28,7 @@ reqwest = { version = "0.13", default-features = false, features = [
   "gzip",
   "rustls",
   "query",
+  "http2"
 ] }
 semver = "1.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -55,6 +56,8 @@ utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
 uuid = { version = "1.8", features = ["v4", "fast-rng", "macro-diagnostics"] }
 validator = { version = "0.20.0", features = ["derive"] }
 zip = "8.6.0"
+# have to do this until https://github.com/durch/rust-s3/pull/452 is merged :(
+rust-s3 = { git = "https://github.com/w4nderlust/rust-s3", rev = "2936eb7", default-features = false, features = ["tokio-rustls-tls", "fail-on-err"] }
 
 [target.'cfg(target_env = "musl")'.dependencies]
 mimalloc = "0.1.52"

@@ -435,12 +435,12 @@ impl ModVersion {
         pool: &mut PgConnection,
     ) -> Result<Option<ModVersion>, DatabaseError> {
         let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
-            r#"SELECT q.name, q.id, q.description, q.version, q.download_link,
+            r#"SELECT q.name, q.id, q.description, q.version, q.download_link, q.managed_download_link,
                 q.hash, q.geode, q.download_count,
                 q.early_load, q.requires_patching, q.api, q.mod_id, q.status,
                 q.created_at, q.updated_at
             FROM (
-                SELECT mv.name, mv.id, mv.description, mv.version, mv.download_link,
+                SELECT mv.name, mv.id, mv.description, mv.version, mv.download_link, mv.managed_download_link,
                     mv.hash,
                     format_semver(mv.geode_major, mv.geode_minor, mv.geode_patch, mv.geode_meta) as geode,
                     mv.download_count, mvs.status,

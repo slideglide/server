@@ -164,7 +164,7 @@ impl ModVersion {
         let mut q: QueryBuilder<Postgres> = QueryBuilder::new(
             r#"
             SELECT mv.id, mv.name, mv.description, mv.version,
-            mv.download_link, mv.download_count, mv.hash,
+            mv.download_link, mv.managed_download_link, mv.download_count, mv.hash,
             format_semver(mv.geode_major, mv.geode_minor, mv.geode_patch, mv.geode_meta) as geode,
             mv.early_load, mv.requires_patching, mv.api, mv.mod_id, mvs.status, mv.created_at, mv.updated_at
             FROM mod_versions mv

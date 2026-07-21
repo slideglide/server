@@ -19,8 +19,6 @@ clap = { version = "4.5", features = ["derive"] }
 dotenvy = "0.15"
 futures = "0.3"
 image = { version = "0.25", features = ["png", "jpeg", "webp"] }
-# Required for zip crate to compile properly
-lzma-rust2 = "0.16.5"
 moka = { version = "0.12.13", features = ["future"] }
 regex = "1.10"
 reqwest = { version = "0.13", default-features = false, features = [

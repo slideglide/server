@@ -317,7 +317,7 @@ pub async fn create_version(
 
     let mut the_mod = mods::get_one(&id, false, &mut pool)
         .await?
-        .ok_or(ApiError::NotFound(format!("Mod {} not found", &id)))?;
+        .ok_or(ApiError::NotFound(format!("Mod {id} not found")))?;
 
     if !developers::has_access_to_mod(dev.id, &the_mod.id, &mut pool).await? {
         return Err(ApiError::Authorization);
@@ -387,7 +387,7 @@ pub async fn create_version(
             .inspect_err(|e| tracing::error!("Failed to parse locally stored version: {}", e))
             .or(Err(ApiError::InternalError(format!(
                 "Failed to parse semver for existing mod version: {}",
-                &latest.version
+                latest.version
             ))))?;
         let new_version = semver::Version::parse(json.version.trim_start_matches('v')).or(Err(
             ApiError::BadRequest(format!("Invalid mod.json version: {}", json.version)),

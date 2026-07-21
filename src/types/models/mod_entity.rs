@@ -450,7 +450,7 @@ impl Mod {
         let developers = developers::get_all_for_mods(&ids, pool).await?;
         let links = ModLinks::fetch_for_mods(&ids, pool).await?;
         let mut mod_version_ids: Vec<i32> = vec![];
-        for (_, mod_version) in versions.iter() {
+        for mod_version in versions.values() {
             mod_version_ids.append(&mut mod_version.iter().map(|x| x.id).collect());
         }
 

@@ -574,29 +574,29 @@ impl ModJson {
         }
 
         if let Some(l) = &self.links {
-            if let Some(community) = &l.community {
-                if let Err(e) = Url::parse(community) {
-                    return Err(ModZipError::InvalidModJson(format!(
-                        "Invalid community URL: {}. Reason: {}",
-                        community, e
-                    )));
-                }
+            if let Some(community) = &l.community
+                && let Err(e) = Url::parse(community)
+            {
+                return Err(ModZipError::InvalidModJson(format!(
+                    "Invalid community URL: {}. Reason: {}",
+                    community, e
+                )));
             }
-            if let Some(homepage) = &l.homepage {
-                if let Err(e) = Url::parse(homepage) {
-                    return Err(ModZipError::InvalidModJson(format!(
-                        "Invalid homepage URL: {}. Reason: {}",
-                        homepage, e
-                    )));
-                }
+            if let Some(homepage) = &l.homepage
+                && let Err(e) = Url::parse(homepage)
+            {
+                return Err(ModZipError::InvalidModJson(format!(
+                    "Invalid homepage URL: {}. Reason: {}",
+                    homepage, e
+                )));
             }
-            if let Some(source) = &l.source {
-                if let Err(e) = Url::parse(source) {
-                    return Err(ModZipError::InvalidModJson(format!(
-                        "Invalid source URL: {}. Reason: {}",
-                        source, e
-                    )));
-                }
+            if let Some(source) = &l.source
+                && let Err(e) = Url::parse(source)
+            {
+                return Err(ModZipError::InvalidModJson(format!(
+                    "Invalid source URL: {}. Reason: {}",
+                    source, e
+                )));
             }
         }
 

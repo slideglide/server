@@ -55,6 +55,7 @@ pub struct ModUpdate {
     pub id: String,
     pub version: String,
     #[serde(skip_serializing)]
+    #[allow(dead_code)]
     pub mod_version_id: i32,
     pub download_link: String,
     pub replacement: Option<Replacement>,

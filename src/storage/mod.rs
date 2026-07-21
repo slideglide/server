@@ -1,4 +1,4 @@
-use std::{path::PathBuf, pin::Pin, sync::Arc};
+use std::{pin::Pin, sync::Arc};
 
 pub use local::LocalBackend;
 pub use s3::*;
@@ -25,6 +25,7 @@ pub trait StorageBackend: Send + Sync {
     }
     fn store<'a>(&'a self, path: &'a str, data: &'a [u8]) -> BoxFuture<'a, StorageResult<()>>;
     fn read<'a>(&'a self, path: &'a str) -> BoxFuture<'a, StorageResult<Vec<u8>>>;
+    #[allow(dead_code)]
     fn exists<'a>(&'a self, path: &'a str) -> BoxFuture<'a, StorageResult<bool>>;
     fn delete<'a>(&'a self, path: &'a str) -> BoxFuture<'a, StorageResult<()>>;
 }
@@ -106,6 +107,7 @@ impl PublicDisk {
     pub async fn read(&self, path: &str) -> StorageResult<Vec<u8>> {
         self.core.read(path).await
     }
+    #[allow(dead_code)]
     pub async fn exists(&self, path: &str) -> StorageResult<bool> {
         self.core.exists(path).await
     }
@@ -128,6 +130,7 @@ impl PrivateDisk {
     pub async fn init(&self) -> StorageResult<()> {
         self.core.init().await
     }
+    #[allow(dead_code)]
     pub async fn store_hashed(
         &self,
         relative_path: &str,
@@ -136,15 +139,19 @@ impl PrivateDisk {
     ) -> StorageResult<String> {
         self.core.store_hashed(relative_path, data, extension).await
     }
+    #[allow(dead_code)]
     pub async fn store(&self, path: &str, data: &[u8]) -> StorageResult<()> {
         self.core.store(path, data).await
     }
+    #[allow(dead_code)]
     pub async fn read(&self, path: &str) -> StorageResult<Vec<u8>> {
         self.core.read(path).await
     }
+    #[allow(dead_code)]
     pub async fn exists(&self, path: &str) -> StorageResult<bool> {
         self.core.exists(path).await
     }
+    #[allow(dead_code)]
     pub async fn delete(&self, path: &str) -> StorageResult<()> {
         self.core.delete(path).await
     }

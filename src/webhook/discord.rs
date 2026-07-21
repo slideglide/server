@@ -20,6 +20,7 @@ impl DiscordMessage {
         }
     }
 
+    #[allow(dead_code)]
     pub fn content(self, content: &str) -> Self {
         DiscordMessage {
             embeds: self.embeds,

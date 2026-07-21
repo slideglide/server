@@ -27,6 +27,7 @@ pub struct ResponseDependency {
 
 #[derive(sqlx::FromRow, Clone, Debug)]
 pub struct FetchedDependency {
+    #[allow(dead_code)]
     pub mod_version_id: i32,
     pub version: String,
     pub dependency_id: String,

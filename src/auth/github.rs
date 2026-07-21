@@ -17,6 +17,7 @@ pub struct GithubStartAuth {
 }
 
 #[derive(Deserialize, Default)]
+#[allow(dead_code)]
 pub enum GithubDeviceFlowErrorString {
     #[serde(rename(deserialize = "authorization_pending"))]
     AuthorizationPending,
@@ -39,6 +40,7 @@ pub enum GithubDeviceFlowErrorString {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct GithubErrorResponse {
     error: GithubDeviceFlowErrorString,
     error_description: String,
@@ -51,6 +53,7 @@ pub struct GithubClient {
 }
 
 #[derive(Serialize)]
+#[allow(dead_code)]
 pub struct GitHubDevicePollPayload {
     client_id: String,
     device_code: String,
@@ -58,6 +61,7 @@ pub struct GitHubDevicePollPayload {
 }
 
 #[derive(Serialize)]
+#[allow(dead_code)]
 pub struct GitHubWebPollPayload {
     client_id: String,
     client_secret: String,

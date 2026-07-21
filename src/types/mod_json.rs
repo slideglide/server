@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
 
-use actix_web::web::Bytes;
 use regex::Regex;
 use reqwest::Url;
 use semver::Version;

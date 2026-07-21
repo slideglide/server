@@ -76,7 +76,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .wrap(tracing_actix_web::TracingLogger::default());
 
-        #[cfg(feature = "dev-tools")]
+        #[cfg(feature = "serve-static")]
         let app = app
             .service(actix_files::Files::new("/static", "static"))
             .service(actix_files::Files::new("/storage", "storage/public"));

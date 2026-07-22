@@ -1,7 +1,7 @@
-use std::cell::Cell;
 use std::io::Seek;
 use std::io::{BufReader, Cursor, Read};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, ToSocketAddrs};
+use std::time::Duration;
 
 use actix_web::web::Bytes;
 use image::codecs::png::PngDecoder;
@@ -13,11 +13,14 @@ use zip::ZipArchive;
 use zip::read::ZipFile;
 use zip::result::ZipError;
 
-use crate::pin_dns::PINNED_ADDR;
+use crate::pin_dns::PINNED_ADDRS;
 
 const DOWNLOAD_DENYLIST_DOMAINS: [&str; 1] = ["localhost"];
 const DOWNLOAD_DENYLIST_TLDS: [&str; 4] = [".host", ".lan", ".local", ".internal"];
 const MAX_REDIRECTS: u8 = 10;
+
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+const TOTAL_DOWNLOAD_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(thiserror::Error, Debug)]
 pub enum ModZipError {
@@ -49,6 +52,8 @@ pub enum ModZipError {
     InvalidModJson(String),
     #[error("Invalid binaries: {0}")]
     InvalidBinaries(String),
+    #[error("Timed out downloading .geode file")]
+    DownloadTimedOut,
 }
 
 pub fn extract_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<Vec<u8>, ModZipError> {
@@ -65,11 +70,18 @@ pub fn extract_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<Vec<u8>, ModZi
 
     let mut reader = BufReader::new(Cursor::new(logo));
 
-    let mut img = PngDecoder::new(&mut reader)
-        .and_then(DynamicImage::from_decoder)
-        .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))?;
+    let decoder = PngDecoder::new(&mut reader)
+        .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))
+        .map_err(|e| ModZipError::ImageError(e))?;
 
-    let dimensions = img.dimensions();
+    let dimensions = image::ImageDecoder::dimensions(&decoder);
+
+    if (dimensions.0 > 1024) || (dimensions.1 > 1024) {
+        return Err(ModZipError::InvalidLogo(format!(
+            "Mod logo dimensions too large ({}x{}). Maximum allowed is 1024x1024.",
+            dimensions.0, dimensions.1
+        )));
+    }
 
     if dimensions.0 != dimensions.1 {
         return Err(ModZipError::InvalidLogo(format!(
@@ -77,6 +89,9 @@ pub fn extract_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<Vec<u8>, ModZi
             dimensions.0, dimensions.1
         )));
     }
+
+    let mut img = DynamicImage::from_decoder(decoder)
+        .inspect_err(|e| tracing::error!("Failed to decode image: {}", e))?;
 
     if (dimensions.0 > 336) || (dimensions.1 > 336) {
         img = img.resize(336, 336, image::imageops::FilterType::Lanczos3);
@@ -118,11 +133,20 @@ pub fn validate_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<(), ModZipErr
 
     let mut reader = BufReader::new(Cursor::new(logo));
 
-    let img = PngDecoder::new(&mut reader)
-        .and_then(DynamicImage::from_decoder)
+    let decoder = PngDecoder::new(&mut reader)
         .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))?;
 
-    let dimensions = img.dimensions();
+    let dimensions = image::ImageDecoder::dimensions(&decoder);
+
+    if (dimensions.0 > 1024) || (dimensions.1 > 1024) {
+        return Err(ModZipError::InvalidLogo(format!(
+            "Mod logo dimensions too large ({}x{}). Maximum allowed is 1024x1024.",
+            dimensions.0, dimensions.1
+        )));
+    }
+
+    let _img = DynamicImage::from_decoder(decoder)
+        .inspect_err(|e| tracing::error!("Failed to decode image: {}", e))?;
 
     if dimensions.0 != dimensions.1 {
         Err(ModZipError::InvalidLogo(format!(
@@ -177,65 +201,82 @@ async fn download(
 
     let limit_bytes: u64 = limit_mb as u64 * 1_000_000;
 
-    for i in 0..MAX_REDIRECTS {
-        tracing::debug!("starting hop {}", i + 1);
-        let addrs = validate_download_url(&current_url)?;
-        let port = current_url.port_or_known_default().unwrap_or(443);
-        let addr = std::net::SocketAddr::new(addrs[0], port);
-        tracing::debug!("DNS validated as {addr}");
+    tokio::time::timeout(TOTAL_DOWNLOAD_TIMEOUT, async {
+        for i in 0..MAX_REDIRECTS {
+            tracing::debug!("starting hop {}", i + 1);
+            let addrs = validate_download_url(&current_url)?;
+            let port = current_url.port_or_known_default().unwrap_or(443);
+            let socket_addrs: Vec<std::net::SocketAddr> = addrs
+                .into_iter()
+                .map(|ip| std::net::SocketAddr::new(ip, port))
+                .collect();
+            tracing::debug!("DNS validated as {:?}", socket_addrs);
 
-        // Pin the validated ip address in our cool custom resolver
-        let response = PINNED_ADDR.scope(Cell::new(Some(addr)), async {
-            http_client.get(url)
-                .send()
-                .await
-                .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))
-        }).await?;
+            // Pin the validated ip addresses in our cool custom resolver.
+            let response = PINNED_ADDRS
+                .scope(socket_addrs, async {
+                    http_client
+                        .get(current_url.as_str())
+                        .timeout(REQUEST_TIMEOUT)
+                        .send()
+                        .await
+                        .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))
+                })
+                .await?;
 
-        if response.status().is_redirection() {
-            let location = response
-                .headers()
-                .get(reqwest::header::LOCATION)
-                .ok_or(ModZipError::InvalidRedirect)?
-                .to_str()
-                .map_err(|_| ModZipError::InvalidRedirect)?;
-            current_url = current_url
-                .join(location)
-                .map_err(|_| ModZipError::InvalidRedirect)?;
-            continue;
-        }
+            if response.status().is_redirection() {
+                let location = response
+                    .headers()
+                    .get(reqwest::header::LOCATION)
+                    .ok_or(ModZipError::InvalidRedirect)?
+                    .to_str()
+                    .map_err(|_| ModZipError::InvalidRedirect)?;
+                current_url = current_url
+                    .join(location)
+                    .map_err(|_| ModZipError::InvalidRedirect)?;
+                continue;
+            }
 
-        let mut response = response
-            .error_for_status()
-            .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))?;
+            let mut response = response
+                .error_for_status()
+                .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))?;
 
-        // Check Content-Length, but the server can lie about this, so we'll also stream the file
-        // If the header is somehow unavailable, we'll just check the size when streaming
-        let content_length = response.content_length().unwrap_or(0);
+            // Check Content-Length, but the server can lie about this, so we'll also stream the file
+            // If the header is somehow unavailable, we'll just check the size when streaming
+            let content_length = response.content_length().unwrap_or(0);
 
-        if content_length > limit_bytes {
-            let len_mb = content_length / 1_000_000;
-            return Err(ModZipError::ModFileTooLarge(len_mb, limit_mb.into()));
-        }
-
-        let mut data: Vec<u8> = Vec::with_capacity(content_length as usize);
-
-        let mut streamed: u64 = 0;
-        while let Some(chunk) = response.chunk().await? {
-            streamed += chunk.len() as u64;
-
-            if streamed > limit_bytes {
-                let len_mb = streamed / 1_000_000;
+            if content_length > limit_bytes {
+                let len_mb = content_length / 1_000_000;
                 return Err(ModZipError::ModFileTooLarge(len_mb, limit_mb.into()));
             }
 
-            data.extend_from_slice(&chunk);
+            let mut data: Vec<u8> = Vec::with_capacity(content_length as usize);
+
+            let mut streamed: u64 = 0;
+            loop {
+                let chunk = response.chunk().await?;
+
+                let Some(chunk) = chunk else {
+                    break;
+                };
+
+                streamed += chunk.len() as u64;
+
+                if streamed > limit_bytes {
+                    let len_mb = streamed / 1_000_000;
+                    return Err(ModZipError::ModFileTooLarge(len_mb, limit_mb.into()));
+                }
+
+                data.extend_from_slice(&chunk);
+            }
+
+            return Ok(Bytes::from(data));
         }
 
-        return Ok(Bytes::from(data));
-    }
-
-    Err(ModZipError::TooManyRedirects)
+        Err(ModZipError::TooManyRedirects)
+    })
+    .await
+    .unwrap_or(Err(ModZipError::DownloadTimedOut))
 }
 
 /// Hopefully this gets rid of all nasty ips
@@ -243,21 +284,28 @@ fn is_disallowed_ip(ip: IpAddr) -> bool {
     match ip {
         IpAddr::V4(v4) => {
             v4.is_loopback()
-                || v4.is_private()
-                || v4.is_link_local()   // covers 169.254.169.254 cloud metadata
-                || v4.is_unspecified()
-                || v4.is_broadcast()
-                || v4.is_documentation()
-                || is_shared_nat(v4) // 100.64.0.0/10 CGNAT
+            || v4.is_private()
+            || v4.is_link_local()   // covers 169.254.169.254 cloud metadata
+            || v4.is_unspecified()
+            || v4.is_broadcast()
+            || v4.is_documentation()
+            || v4.is_multicast()
+            || v4.octets()[0] == 0 // 0.0.0.0/8 (routes to localhost on Linux)
+            || is_shared_nat(v4) // 100.64.0.0/10 CGNAT
+            || is_ietf_protocol_assignment(v4) // 192.0.0.0/24
+            || is_reserved(v4) // 240.0.0.0/4
+            || is_benchmarking(v4) // 198.18.0.0/15
         }
         IpAddr::V6(v6) => {
             v6.is_loopback()
-                || v6.is_unspecified()
-                || is_unique_local(v6)      // fc00::/7
-                || is_ipv6_link_local(v6)   // fe80::/10
-                || v6
-                    .to_ipv4_mapped()
-                    .is_some_and(|v4| is_disallowed_ip(IpAddr::V4(v4)))
+            || v6.is_unspecified()
+            || is_unique_local(v6)      // fc00::/7
+            || is_ipv6_link_local(v6)   // fe80::/10
+            || (v6.segments()[0] == 0x2001 && v6.segments()[1] == 0xdb8) // 2001:db8::/32 documentation
+            || v6.is_multicast()
+            || v6
+            .to_ipv4_mapped()
+            .is_some_and(|v4| is_disallowed_ip(IpAddr::V4(v4)))
         }
     }
 }
@@ -266,6 +314,18 @@ fn is_disallowed_ip(ip: IpAddr) -> bool {
 fn is_shared_nat(v4: Ipv4Addr) -> bool {
     let o = v4.octets();
     o[0] == 100 && (o[1] & 0b1100_0000) == 0b0100_0000
+}
+
+fn is_ietf_protocol_assignment(v4: Ipv4Addr) -> bool {
+    v4.octets()[0] == 192 && v4.octets()[1] == 0 && v4.octets()[2] == 0
+}
+
+fn is_reserved(v4: Ipv4Addr) -> bool {
+    (v4.octets()[0] & 0xf0) == 240
+}
+
+fn is_benchmarking(v4: Ipv4Addr) -> bool {
+    v4.octets()[0] == 198 && (v4.octets()[1] & 0xfe) == 18
 }
 
 /// Denies ipv6 like `fc00::/7`
@@ -288,7 +348,10 @@ fn ends_with_label(host: &str, suffix_with_dot: &str) -> bool {
 }
 
 fn is_denied_host(host: &str) -> bool {
-    DOWNLOAD_DENYLIST_DOMAINS.contains(&host) || DOWNLOAD_DENYLIST_TLDS.iter().any(|&i| ends_with_label(host, i))
+    DOWNLOAD_DENYLIST_DOMAINS.contains(&host)
+        || DOWNLOAD_DENYLIST_TLDS
+            .iter()
+            .any(|&i| ends_with_label(host, i))
 }
 
 fn validate_download_url(url: &Url) -> Result<Vec<IpAddr>, ModZipError> {

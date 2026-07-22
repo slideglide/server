@@ -221,7 +221,9 @@ impl DetailedGDVersion {
                 })
             }
         }
-        if let Some(win) = self.win && json.windows {
+        if let Some(win) = self.win
+            && json.windows
+        {
             ret.push(ModGDVersionCreate {
                 gd: win,
                 platform: VerPlatform::Win,
@@ -241,7 +243,9 @@ impl DetailedGDVersion {
                 })
             }
         }
-        if let Some(ios) = self.ios && json.ios {
+        if let Some(ios) = self.ios
+            && json.ios
+        {
             ret.push(ModGDVersionCreate {
                 gd: ios,
                 platform: VerPlatform::Ios,

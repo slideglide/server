@@ -19,7 +19,6 @@ const DOWNLOAD_DENYLIST_DOMAINS: [&str; 1] = ["localhost"];
 const DOWNLOAD_DENYLIST_TLDS: [&str; 4] = [".host", ".lan", ".local", ".internal"];
 const MAX_REDIRECTS: u8 = 10;
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 const TOTAL_DOWNLOAD_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(thiserror::Error, Debug)]
@@ -52,8 +51,6 @@ pub enum ModZipError {
     InvalidModJson(String),
     #[error("Invalid binaries: {0}")]
     InvalidBinaries(String),
-    #[error("Timed out downloading .geode file")]
-    DownloadTimedOut,
 }
 
 pub fn extract_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<Vec<u8>, ModZipError> {
@@ -70,18 +67,19 @@ pub fn extract_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<Vec<u8>, ModZi
 
     let mut reader = BufReader::new(Cursor::new(logo));
 
-    let decoder = PngDecoder::new(&mut reader)
-        .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))
-        .map_err(|e| ModZipError::ImageError(e))?;
+    let mut img = PngDecoder::with_limits(
+        &mut reader,
+        {
+            let mut l = image::Limits::default();
+            l.max_image_width = Some(1024);
+            l.max_image_height = Some(1024);
+            l
+        },
+    )
+    .and_then(DynamicImage::from_decoder)
+    .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))?;
 
-    let dimensions = image::ImageDecoder::dimensions(&decoder);
-
-    if (dimensions.0 > 1024) || (dimensions.1 > 1024) {
-        return Err(ModZipError::InvalidLogo(format!(
-            "Mod logo dimensions too large ({}x{}). Maximum allowed is 1024x1024.",
-            dimensions.0, dimensions.1
-        )));
-    }
+    let dimensions = img.dimensions();
 
     if dimensions.0 != dimensions.1 {
         return Err(ModZipError::InvalidLogo(format!(
@@ -89,9 +87,6 @@ pub fn extract_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<Vec<u8>, ModZi
             dimensions.0, dimensions.1
         )));
     }
-
-    let mut img = DynamicImage::from_decoder(decoder)
-        .inspect_err(|e| tracing::error!("Failed to decode image: {}", e))?;
 
     if (dimensions.0 > 336) || (dimensions.1 > 336) {
         img = img.resize(336, 336, image::imageops::FilterType::Lanczos3);
@@ -133,20 +128,19 @@ pub fn validate_mod_logo<R: Read>(file: &mut ZipFile<R>) -> Result<(), ModZipErr
 
     let mut reader = BufReader::new(Cursor::new(logo));
 
-    let decoder = PngDecoder::new(&mut reader)
-        .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))?;
+    let img = PngDecoder::with_limits(
+        &mut reader,
+        {
+            let mut l = image::Limits::default();
+            l.max_image_width = Some(1024);
+            l.max_image_height = Some(1024);
+            l
+        },
+    )
+    .and_then(DynamicImage::from_decoder)
+    .inspect_err(|e| tracing::error!("Failed to create PngDecoder: {}", e))?;
 
-    let dimensions = image::ImageDecoder::dimensions(&decoder);
-
-    if (dimensions.0 > 1024) || (dimensions.1 > 1024) {
-        return Err(ModZipError::InvalidLogo(format!(
-            "Mod logo dimensions too large ({}x{}). Maximum allowed is 1024x1024.",
-            dimensions.0, dimensions.1
-        )));
-    }
-
-    let _img = DynamicImage::from_decoder(decoder)
-        .inspect_err(|e| tracing::error!("Failed to decode image: {}", e))?;
+    let dimensions = img.dimensions();
 
     if dimensions.0 != dimensions.1 {
         Err(ModZipError::InvalidLogo(format!(
@@ -201,82 +195,78 @@ async fn download(
 
     let limit_bytes: u64 = limit_mb as u64 * 1_000_000;
 
-    tokio::time::timeout(TOTAL_DOWNLOAD_TIMEOUT, async {
-        for i in 0..MAX_REDIRECTS {
-            tracing::debug!("starting hop {}", i + 1);
-            let addrs = validate_download_url(&current_url)?;
-            let port = current_url.port_or_known_default().unwrap_or(443);
-            let socket_addrs: Vec<std::net::SocketAddr> = addrs
-                .into_iter()
-                .map(|ip| std::net::SocketAddr::new(ip, port))
-                .collect();
-            tracing::debug!("DNS validated as {:?}", socket_addrs);
+    for i in 0..MAX_REDIRECTS {
+        tracing::debug!("starting hop {}", i + 1);
+        let addrs = validate_download_url(&current_url)?;
+        let port = current_url.port_or_known_default().unwrap_or(443);
+        let socket_addrs: Vec<std::net::SocketAddr> = addrs
+            .into_iter()
+            .map(|ip| std::net::SocketAddr::new(ip, port))
+            .collect();
+        tracing::debug!("DNS validated as {:?}", socket_addrs);
 
-            // Pin the validated ip addresses in our cool custom resolver.
-            let response = PINNED_ADDRS
-                .scope(socket_addrs, async {
-                    http_client
-                        .get(current_url.as_str())
-                        .timeout(REQUEST_TIMEOUT)
-                        .send()
-                        .await
-                        .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))
-                })
-                .await?;
+        // Pin the validated ip addresses in our cool custom resolver.
+        let response = PINNED_ADDRS
+            .scope(socket_addrs, async {
+                http_client
+                    .get(current_url.as_str())
+                    .timeout(TOTAL_DOWNLOAD_TIMEOUT)
+                    .send()
+                    .await
+                    .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))
+            })
+            .await?;
 
-            if response.status().is_redirection() {
-                let location = response
-                    .headers()
-                    .get(reqwest::header::LOCATION)
-                    .ok_or(ModZipError::InvalidRedirect)?
-                    .to_str()
-                    .map_err(|_| ModZipError::InvalidRedirect)?;
-                current_url = current_url
-                    .join(location)
-                    .map_err(|_| ModZipError::InvalidRedirect)?;
-                continue;
-            }
+        if response.status().is_redirection() {
+            let location = response
+                .headers()
+                .get(reqwest::header::LOCATION)
+                .ok_or(ModZipError::InvalidRedirect)?
+                .to_str()
+                .map_err(|_| ModZipError::InvalidRedirect)?;
+            current_url = current_url
+                .join(location)
+                .map_err(|_| ModZipError::InvalidRedirect)?;
+            continue;
+        }
 
-            let mut response = response
-                .error_for_status()
-                .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))?;
+        let mut response = response
+            .error_for_status()
+            .inspect_err(|e| tracing::error!("Failed to fetch .geode file: {e}"))?;
 
-            // Check Content-Length, but the server can lie about this, so we'll also stream the file
-            // If the header is somehow unavailable, we'll just check the size when streaming
-            let content_length = response.content_length().unwrap_or(0);
+        // Check Content-Length, but the server can lie about this, so we'll also stream the file
+        // If the header is somehow unavailable, we'll just check the size when streaming
+        let content_length = response.content_length().unwrap_or(0);
 
-            if content_length > limit_bytes {
-                let len_mb = content_length / 1_000_000;
+        if content_length > limit_bytes {
+            let len_mb = content_length / 1_000_000;
+            return Err(ModZipError::ModFileTooLarge(len_mb, limit_mb.into()));
+        }
+
+        let mut data: Vec<u8> = Vec::with_capacity(content_length as usize);
+
+        let mut streamed: u64 = 0;
+        loop {
+            let chunk = response.chunk().await?;
+
+            let Some(chunk) = chunk else {
+                break;
+            };
+
+            streamed += chunk.len() as u64;
+
+            if streamed > limit_bytes {
+                let len_mb = streamed / 1_000_000;
                 return Err(ModZipError::ModFileTooLarge(len_mb, limit_mb.into()));
             }
 
-            let mut data: Vec<u8> = Vec::with_capacity(content_length as usize);
-
-            let mut streamed: u64 = 0;
-            loop {
-                let chunk = response.chunk().await?;
-
-                let Some(chunk) = chunk else {
-                    break;
-                };
-
-                streamed += chunk.len() as u64;
-
-                if streamed > limit_bytes {
-                    let len_mb = streamed / 1_000_000;
-                    return Err(ModZipError::ModFileTooLarge(len_mb, limit_mb.into()));
-                }
-
-                data.extend_from_slice(&chunk);
-            }
-
-            return Ok(Bytes::from(data));
+            data.extend_from_slice(&chunk);
         }
 
-        Err(ModZipError::TooManyRedirects)
-    })
-    .await
-    .unwrap_or(Err(ModZipError::DownloadTimedOut))
+        return Ok(Bytes::from(data));
+    }
+
+    Err(ModZipError::TooManyRedirects)
 }
 
 /// Hopefully this gets rid of all nasty ips

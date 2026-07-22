@@ -284,17 +284,17 @@ fn is_disallowed_ip(ip: IpAddr) -> bool {
     match ip {
         IpAddr::V4(v4) => {
             v4.is_loopback()
-            || v4.is_private()
-            || v4.is_link_local()   // covers 169.254.169.254 cloud metadata
-            || v4.is_unspecified()
-            || v4.is_broadcast()
-            || v4.is_documentation()
-            || v4.is_multicast()
-            || v4.octets()[0] == 0 // 0.0.0.0/8 (routes to localhost on Linux)
-            || is_shared_nat(v4) // 100.64.0.0/10 CGNAT
-            || is_ietf_protocol_assignment(v4) // 192.0.0.0/24
-            || is_reserved(v4) // 240.0.0.0/4
-            || is_benchmarking(v4) // 198.18.0.0/15
+                || v4.is_private()
+                || v4.is_link_local()   // covers 169.254.169.254 cloud metadata
+                || v4.is_unspecified()
+                || v4.is_broadcast()
+                || v4.is_documentation()
+                || v4.is_multicast()
+                || v4.octets()[0] == 0 // 0.0.0.0/8 (routes to localhost on Linux)
+                || is_shared_nat(v4) // 100.64.0.0/10 CGNAT
+                || is_ietf_protocol_assignment(v4) // 192.0.0.0/24
+                || is_reserved(v4) // 240.0.0.0/4
+                || is_benchmarking(v4) // 198.18.0.0/15
         }
         IpAddr::V6(v6) => {
             v6.is_loopback()
@@ -304,8 +304,8 @@ fn is_disallowed_ip(ip: IpAddr) -> bool {
             || (v6.segments()[0] == 0x2001 && v6.segments()[1] == 0xdb8) // 2001:db8::/32 documentation
             || v6.is_multicast()
             || v6
-            .to_ipv4_mapped()
-            .is_some_and(|v4| is_disallowed_ip(IpAddr::V4(v4)))
+                .to_ipv4_mapped()
+                .is_some_and(|v4| is_disallowed_ip(IpAddr::V4(v4)))
         }
     }
 }
@@ -348,10 +348,7 @@ fn ends_with_label(host: &str, suffix_with_dot: &str) -> bool {
 }
 
 fn is_denied_host(host: &str) -> bool {
-    DOWNLOAD_DENYLIST_DOMAINS.contains(&host)
-        || DOWNLOAD_DENYLIST_TLDS
-            .iter()
-            .any(|&i| ends_with_label(host, i))
+    DOWNLOAD_DENYLIST_DOMAINS.contains(&host) || DOWNLOAD_DENYLIST_TLDS.iter().any(|&i| ends_with_label(host, i))
 }
 
 fn validate_download_url(url: &Url) -> Result<Vec<IpAddr>, ModZipError> {
